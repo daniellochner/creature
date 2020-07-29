@@ -1,0 +1,9 @@
+// ButtonInspector 1.0.0
+// Bruno Silva
+// bruno3dcontato@gmail.com
+
+Features:
+- It allows you to invoke methods directly from the inspector;
+- Supporting undo/redo;
+
+Enjoy!
