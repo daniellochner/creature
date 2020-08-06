@@ -27,7 +27,7 @@
             "mayaCompatibleNaming": true,
             "include": 2,
             "lodLevel": 0,
-            "objectPosition": 0,
+            "objectPosition": 1,
             "exportUnrendered": true
         },
         "convertToPrefabSettingsSerialize": {

@@ -3,409 +3,440 @@
 // Author: Daniel Lochner
 
 using BasicTools.ButtonInspector;
+using Cinemachine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-public class Body : MonoBehaviour
+namespace DanielLochner.Assets.CreatureCreator
 {
-    #region Fields
-    [SerializeField] private BodySettings bodySettings;
-
-    [Space]
-
-    [SerializeField] [Button("Add to Front", "AddToFront")] private bool addToFront;
-    [SerializeField] [Button("Add to Back", "AddToBack")] private bool addToBack;
-    [SerializeField] [Button("Remove from Front", "RemoveFromFront")] private bool removeFromFront;
-    [SerializeField] [Button("Remove from Back", "RemoveFromBack")] private bool removeFromBack;
-
-    private Mesh mesh;
-    private SkinnedMeshRenderer skinnedMeshRenderer;
-
-    private List<Vector3> vertices = new List<Vector3>();
-    private List<int> triangles = new List<int>();
-    private List<int> segments = new List<int>();
-    #endregion
-
-    #region Methods
-    private void Awake()
+    public class Body : MonoBehaviour
     {
-        Initialize();
-    }
-    private void Initialize()
-    {
-        if (!mesh)
+        #region Fields
+        [SerializeField] private BodySettings bodySettings;
+
+        [Header("Tools")]
+        [SerializeField] private GameObject boneTool;
+        [SerializeField] private GameObject pivotTool;
+        [SerializeField] private GameObject rotateTool;
+        [SerializeField] private GameObject stretchTool;
+
+        [Space]
+
+        [SerializeField] [Button("Add to Front", "AddToFront")] private bool addToFront;
+        [SerializeField] [Button("Add to Back", "AddToBack")] private bool addToBack;
+        [SerializeField] [Button("Remove from Front", "RemoveFromFront")] private bool removeFromFront;
+        [SerializeField] [Button("Remove from Back", "RemoveFromBack")] private bool removeFromBack;
+
+        private SkinnedMeshRenderer skinnedMeshRenderer;
+        private MeshCollider meshCollider;
+        private Transform root;
+        private Mesh mesh;
+
+        private List<Bone> bones = new List<Bone>();
+        #endregion
+
+        #region Properties
+        public static bool IsModifyingMesh { get; set; }
+        #endregion
+
+        #region Methods
+        private void Awake()
         {
-            GameObject model = new GameObject("Model");
-            model.transform.SetParent(transform);
-            model.transform.localPosition = Vector3.zero;
-            model.transform.localRotation = Quaternion.identity;
-
-            GameObject root = new GameObject("Root");
-            root.transform.SetParent(transform);
-            root.transform.localPosition = Vector3.zero;
-            root.transform.localRotation = Quaternion.identity;
-
-            skinnedMeshRenderer = model.AddComponent<SkinnedMeshRenderer>();
-            skinnedMeshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
-            skinnedMeshRenderer.sharedMesh = mesh = model.AddComponent<MeshFilter>().sharedMesh = new Mesh();
-            skinnedMeshRenderer.rootBone = root.transform;
-            skinnedMeshRenderer.updateWhenOffscreen = true;
-
-            mesh.name = "Body";
+            Initialize();
         }
 
-        AddEndSegment(-1);
-        AddEndSegment(1);
-
-        DisplayVertices(0f);
-    }
-
-    private void AddEndSegment(int dir)
-    {
-        if (segments.Count < bodySettings.MinMaxSegments.y)
+        private void Initialize()
         {
-            if (segments.Count(x => x == dir) > 0)
+            if (!mesh)
             {
-                RemoveEnd(dir, CountVertices(dir));
-                AddSegment(dir, CountVertices(dir) - 1);
+                GameObject model = new GameObject("Model");
+                model.transform.SetParent(transform);
+                model.transform.localPosition = Vector3.zero;
+                model.transform.localRotation = Quaternion.identity;
+
+                root = new GameObject("Root").transform;
+                root.SetParent(transform);
+                root.localPosition = Vector3.zero;
+                root.localRotation = Quaternion.identity;
+
+                skinnedMeshRenderer = model.AddComponent<SkinnedMeshRenderer>();
+                skinnedMeshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+                skinnedMeshRenderer.sharedMesh = mesh = model.AddComponent<MeshFilter>().sharedMesh = new Mesh();
+                skinnedMeshRenderer.rootBone = root.transform;
+
+                meshCollider = model.AddComponent<MeshCollider>();
+
+                model.AddComponent<Test>();
+
+                mesh.name = "Body";
             }
-            else
-            {
-                AddSegment(dir, 0);
-            }
-            AddEnd(dir, CountVertices(dir) - 1);
+
+            Add(0, Vector3.zero, Quaternion.identity, 0f);
+            AddToBack();
 
             Setup();
         }
-    }
-    private void AddSegment(int dir, int startVertex)
-    {
-        float zOffset = (vertices.Count > 0) ? vertices[startVertex].z : 0;
-
-        for (int ringIndex = 1; ringIndex < bodySettings.Rings; ringIndex++)
+        private void Setup()
         {
-            for (int i = 0; i < bodySettings.Segments; i++)
+            #region Mesh Generation
+            mesh.Clear();
+
+            #region Vertices
+            List<Vector3> vertices = new List<Vector3>();
+            List<BoneWeight> boneWeights = new List<BoneWeight>();
+
+            // Top Hemisphere.
+            vertices.Add(new Vector3(0, 0, 0));
+            boneWeights.Add(new BoneWeight() { boneIndex0 = 0, weight0 = 1 });
+            for (int ringIndex = 1; ringIndex < bodySettings.Segments / 2; ringIndex++)
             {
-                float angle = dir * i * 360f / bodySettings.Segments;
+                float percent = (float)ringIndex / (bodySettings.Segments / 2);
+                float ringRadius = bodySettings.Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
+                float ringDistance = bodySettings.Radius * (-Mathf.Cos(90f * percent * Mathf.Deg2Rad) + 1f);
 
-                float x = bodySettings.Radius * Mathf.Cos(angle * Mathf.Deg2Rad);
-                float y = bodySettings.Radius * Mathf.Sin(angle * Mathf.Deg2Rad);
-                float z = dir * (ringIndex * bodySettings.Length / (bodySettings.Rings - 1));
-
-                vertices.Add(new Vector3(x, y, z + zOffset));
-            }
-        }
-        segments.Add(dir);
-    }
-    private void AddEnd(int dir, int startVertex, bool insertAtStartVertex = false)
-    {
-        float zOffset = (vertices.Count > 0) ? vertices[startVertex].z : 0;
-
-        List<Vector3> tempVertices = new List<Vector3>();
-        for (int ringIndex = 1; ringIndex < bodySettings.Segments / 2 - 1; ringIndex++)
-        {
-            float percent = ringIndex / (bodySettings.Segments / 2 - 1f);
-            float ringRadius = Mathf.Cos(90f * percent * Mathf.Deg2Rad) * bodySettings.Radius;
-            float ringDistance = Mathf.Sin(90f * percent * Mathf.Deg2Rad) * bodySettings.Radius;
-
-            for (int i = 0; i < bodySettings.Segments; i++)
-            {
-                float angle = dir * i * 360f / bodySettings.Segments;
-
-                float x = ringRadius * Mathf.Cos(angle * Mathf.Deg2Rad);
-                float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
-                float z = dir * ringDistance;
-
-                tempVertices.Add(new Vector3(x, y, z + zOffset));
-            }
-        }
-        tempVertices.Add(new Vector3(0, 0, (dir * bodySettings.Radius) + zOffset));
-
-        vertices.InsertRange(insertAtStartVertex ? (startVertex + 1) : vertices.Count, tempVertices);
-    }
-
-    private void RemoveEndSegment(int dir)
-    {
-        if (segments.Count > bodySettings.MinMaxSegments.x)
-        {
-            int dirCount = segments.Count(x => x == dir);
-
-            RemoveEnd(dir, CountVertices(dir));
-            RemoveSegment(dir, CountVertices(dir) - bodySettings.SegmentVertCount);
-
-            if (dirCount > 1)
-            {
-                AddEnd(dir, CountVertices(dir) - 1, true);
-            }
-            else
-            {
-                RemoveSegment(-dir, 0);
-                AddEndSegment(dir);
-            }
-
-            Setup();
-        }
-    }
-    private void RemoveSegment(int dir, int startVertex)
-    {
-        vertices.RemoveRange(startVertex, bodySettings.SegmentVertCount);
-
-        int lastIndex = 0;
-        for (int i = 0; i < segments.Count; i++)
-        {
-            if (segments[i] == dir)
-            {
-                lastIndex = i;
-            }
-        }
-        segments.RemoveAt(lastIndex);
-    }
-    private void RemoveEnd(int dir, int startVertex)
-    {
-        vertices.RemoveRange(startVertex, bodySettings.EndVertCount);
-    }
-
-    private void Setup()
-    {
-        mesh.Clear();
-
-        SetupVertices();
-        SetupTriangles();
-
-        mesh.RecalculateNormals();
-
-        // update bounds manually...
-    }
-    private void SetupVertices()
-    {
-        mesh.vertices = vertices.ToArray();
-    }
-    private void SetupTriangles()
-    {
-        triangles.Clear();
-
-        int vertIndex = 0;
-        int currentIndex = 0;
-
-        foreach (int dir in segments)
-        {
-            int lastIndex = 0;
-            for (int i = 0; i < segments.Count; i++)
-            {
-                if (segments[i] == dir)
+                for (int i = 0; i < bodySettings.Segments; i++)
                 {
-                    lastIndex = i;
+                    float angle = i * 360f / bodySettings.Segments;
+
+                    float x = ringRadius * Mathf.Cos(angle * Mathf.Deg2Rad);
+                    float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
+                    float z = ringDistance;
+
+                    vertices.Add(new Vector3(x, y, z));
+                    boneWeights.Add(new BoneWeight() { boneIndex0 = 0, weight0 = 1f });
                 }
             }
 
-            int rings = (bodySettings.Rings - ((currentIndex == lastIndex) ? 2 : 1)) + ((currentIndex == lastIndex) ? (bodySettings.Segments / 2 - 2) : 0);
+            // Middle Cylinder.
+            for (int ringIndex = 0; ringIndex < bodySettings.Rings * bones.Count; ringIndex++)
+            {
+                float boneIndexFloat = (float)ringIndex / bodySettings.Rings;
+                int boneIndex = Mathf.FloorToInt(boneIndexFloat);
+
+                float bonePercent = boneIndexFloat - boneIndex;
+
+                int boneIndex0 = (boneIndex > 0) ? boneIndex - 1 : 0;
+                int boneIndex2 = (boneIndex < bones.Count - 1) ? boneIndex + 1 : bones.Count - 1;
+                int boneIndex1 = boneIndex;
+
+                float weight0 = (boneIndex > 0) ? (1f - bonePercent) * 0.5f : 0f;
+                float weight2 = (boneIndex < bones.Count - 1) ? bonePercent * 0.5f : 0f;
+                float weight1 = 1f - (weight0 + weight2);
+
+                for (int i = 0; i < bodySettings.Segments; i++)
+                {
+                    float angle = i * 360f / bodySettings.Segments;
+
+                    float x = bodySettings.Radius * Mathf.Cos(angle * Mathf.Deg2Rad);
+                    float y = bodySettings.Radius * Mathf.Sin(angle * Mathf.Deg2Rad);
+                    float z = ringIndex * bodySettings.Length / bodySettings.Rings;
+
+                    vertices.Add(new Vector3(x, y, bodySettings.Radius + z));
+                    boneWeights.Add(new BoneWeight()
+                    {
+                        boneIndex0 = boneIndex0,
+                        boneIndex1 = boneIndex1,
+                        boneIndex2 = boneIndex2,
+                        weight0 = weight0,
+                        weight1 = weight1,
+                        weight2 = weight2
+                    });
+                }
+            }
+
+            // Bottom Hemisphere.
+            for (int ringIndex = 0; ringIndex < bodySettings.Segments / 2; ringIndex++)
+            {
+                float percent = (float)ringIndex / (bodySettings.Segments / 2);
+                float ringRadius = bodySettings.Radius * Mathf.Cos(90f * percent * Mathf.Deg2Rad);
+                float ringDistance = bodySettings.Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
+
+                for (int i = 0; i < bodySettings.Segments; i++)
+                {
+                    float angle = i * 360f / bodySettings.Segments;
+
+                    float x = ringRadius * Mathf.Cos(angle * Mathf.Deg2Rad);
+                    float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
+                    float z = ringDistance;
+
+                    vertices.Add(new Vector3(x, y, bodySettings.Radius + (bodySettings.Length * bones.Count) + z));
+                    boneWeights.Add(new BoneWeight() { boneIndex0 = bones.Count - 1, weight0 = 1 });
+                }
+            }
+            vertices.Add(new Vector3(0, 0, 2f * bodySettings.Radius + (bodySettings.Length * bones.Count)));
+            boneWeights.Add(new BoneWeight() { boneIndex0 = bones.Count - 1, weight0 = 1 });
+
+            mesh.vertices = vertices.ToArray();
+            mesh.boneWeights = boneWeights.ToArray();
+            #endregion
+
+            #region Triangles
+            List<int> triangles = new List<int>();
+
+            for (int i = 0; i < bodySettings.Segments; i++)
+            {
+                int seamOffset = i != bodySettings.Segments - 1 ? 0 : bodySettings.Segments;
+
+                triangles.Add(0);
+                triangles.Add(i + 2 - seamOffset);
+                triangles.Add(i + 1);
+            }
+
+            int rings = (bodySettings.Rings * bones.Count) + (2 * (bodySettings.Segments / 2 - 1));
             for (int ringIndex = 0; ringIndex < rings; ringIndex++)
             {
-                if (currentIndex != lastIndex && ringIndex == rings - 1)
-                {
-                    // JOIN DIFFERENTLY!
+                int ringOffset = 1 + ringIndex * bodySettings.Segments;
 
-                }
-                else
-                {
-                    for (int i = 0; i < bodySettings.Segments; i++)
-                    {
-                        int seamOffset = i != bodySettings.Segments - 1 ? 0 : bodySettings.Segments;
-
-                        triangles.Add(vertIndex + i);
-                        triangles.Add(vertIndex + i + 1 - seamOffset);
-                        triangles.Add(vertIndex + i + bodySettings.Segments + 1 - seamOffset);
-
-                        triangles.Add(vertIndex + i + bodySettings.Segments + 1 - seamOffset);
-                        triangles.Add(vertIndex + i + bodySettings.Segments);
-                        triangles.Add(vertIndex + i);
-                    }
-                }
-
-                vertIndex += bodySettings.Segments;
-            }
-
-            if (currentIndex == lastIndex)
-            {
-                int topVertIndex = vertIndex + bodySettings.Segments;
                 for (int i = 0; i < bodySettings.Segments; i++)
                 {
                     int seamOffset = i != bodySettings.Segments - 1 ? 0 : bodySettings.Segments;
 
-                    triangles.Add(topVertIndex);
-                    triangles.Add(topVertIndex - i - 2 + seamOffset);
-                    triangles.Add(topVertIndex - i - 1);
+                    triangles.Add(ringOffset + i);
+                    triangles.Add(ringOffset + i + 1 - seamOffset);
+                    triangles.Add(ringOffset + i + 1 - seamOffset + bodySettings.Segments);
+
+                    triangles.Add(ringOffset + i + 1 - seamOffset + bodySettings.Segments);
+                    triangles.Add(ringOffset + i + bodySettings.Segments);
+                    triangles.Add(ringOffset + i);
                 }
-                vertIndex += (bodySettings.Segments + 1);
             }
 
-            currentIndex++;
-        }
-
-        mesh.triangles = triangles.ToArray();
-    }
-
-    private int CountVertices(int dir)
-    {
-        int lastIndexEnd = 0, lastIndexOppEnd = 0;
-        for (int i = 0; i < segments.Count; i++)
-        {
-            if (segments[i] == dir)
+            int topIndex = 1 + (rings + 1) * bodySettings.Segments;
+            for (int i = 0; i < bodySettings.Segments; i++)
             {
-                lastIndexEnd = i;
+                int seamOffset = i != bodySettings.Segments - 1 ? 0 : bodySettings.Segments;
+
+                triangles.Add(topIndex);
+                triangles.Add(topIndex - i - 2 + seamOffset);
+                triangles.Add(topIndex - i - 1);
             }
-            else
+
+            mesh.triangles = triangles.ToArray();
+            #endregion
+
+            #region Bones
+            Transform[] boneTransforms = new Transform[bones.Count];
+            Matrix4x4[] bindPoses = new Matrix4x4[bones.Count];
+            Vector3[] deltaZeroArray = new Vector3[vertices.Count];
+            for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
             {
-                lastIndexOppEnd = i;
+                deltaZeroArray[vertIndex] = Vector3.zero;
             }
-        }
 
-        int startVertIndex = (lastIndexEnd + 1) * bodySettings.SegmentVertCount;
-        if (lastIndexEnd > lastIndexOppEnd)
-        {
-            startVertIndex += bodySettings.EndVertCount;
-        }
-
-        return startVertIndex;
-    }
-
-    public void AddToFront()
-    {
-        AddEndSegment(1);
-        DisplayVertices(0f);
-    }
-    public void AddToBack()
-    {
-        AddEndSegment(-1);
-        DisplayVertices(0f);
-    }
-    public void RemoveFromFront()
-    {
-        RemoveEndSegment(1);
-        DisplayVertices(0f);
-    }
-    public void RemoveFromBack()
-    {
-        RemoveEndSegment(-1);
-        DisplayVertices(0f);
-    }
-
-    #region Debugging
-    private List<Vector3> gizmoVertices = new List<Vector3>();
-    private Coroutine displayVerticesCoroutine;
-
-    private void OnDrawGizmos()
-    {
-        if (gizmoVertices == null || gizmoVertices.Count == 0) { return; }
-
-        foreach (Vector3 vertex in gizmoVertices)
-        {
-            Gizmos.DrawSphere(vertex + transform.position, 0.005f);
-        }
-    }
-
-    [ContextMenu("Debug/Display")]
-    public void DisplayVertices()
-    {
-        DisplayVertices(Application.isPlaying ? 0.025f : 0f);
-    }
-    private void DisplayVertices(float time)
-    {
-        HideVertices();
-        displayVerticesCoroutine = StartCoroutine(DisplayVerticesRoutine(time));
-
-        //Debug.Log(string.Format("[{0}]", string.Join(", ", segments.ToArray())));
-    }
-    private IEnumerator DisplayVerticesRoutine(float time)
-    {
-        foreach (Vector3 vertex in vertices)
-        {
-            gizmoVertices.Add(vertex);
-
-            if (time > 0)
+            for (int boneIndex = 0; boneIndex < bones.Count; boneIndex++)
             {
-                yield return new WaitForSeconds(time);
+                boneTransforms[boneIndex] = root.GetChild(boneIndex);
+
+                boneTransforms[boneIndex].localPosition = Vector3.forward * (bodySettings.Radius + bodySettings.Length * (0.5f + boneIndex));
+                boneTransforms[boneIndex].localRotation = Quaternion.identity;
+                bindPoses[boneIndex] = boneTransforms[boneIndex].worldToLocalMatrix * transform.localToWorldMatrix;
+
+                if (boneIndex > 0)
+                {
+                    HingeJoint hingeJoint = boneTransforms[boneIndex].GetComponent<HingeJoint>();
+                    hingeJoint.anchor = new Vector3(0, 0, -bodySettings.Length / 2f);
+                    hingeJoint.connectedBody = boneTransforms[boneIndex - 1].GetComponent<Rigidbody>();
+                }
+
+                Vector3[] deltaVertices = new Vector3[vertices.Count];
+                for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
+                {
+                    float distanceToBone = Mathf.Clamp(Vector3.Distance(vertices[vertIndex], boneTransforms[boneIndex].localPosition), 0, 2f * bodySettings.Length);
+                    Vector3 directionToBone = (vertices[vertIndex] - boneTransforms[boneIndex].localPosition).normalized;
+
+                    deltaVertices[vertIndex] = directionToBone * (2f * bodySettings.Length - distanceToBone);
+                }
+
+                mesh.AddBlendShapeFrame("Bone." + boneIndex, 0, deltaZeroArray, deltaZeroArray, deltaZeroArray);
+                mesh.AddBlendShapeFrame("Bone." + boneIndex, 100, deltaVertices, deltaZeroArray, deltaZeroArray);
+            }
+
+            mesh.bindposes = bindPoses;
+            skinnedMeshRenderer.bones = boneTransforms;
+            #endregion
+
+            mesh.RecalculateNormals();
+            mesh.Optimize();
+            #endregion
+
+            #region Mesh Deformation
+            for (int boneIndex = 0; boneIndex < bones.Count; boneIndex++)
+            {
+                boneTransforms[boneIndex].localPosition = bones[boneIndex].Position;
+                boneTransforms[boneIndex].localRotation = bones[boneIndex].Rotation;
+                skinnedMeshRenderer.SetBlendShapeWeight(boneIndex, bones[boneIndex].Size);
+            }
+
+            Mesh skinnedMesh = new Mesh();
+            skinnedMeshRenderer.BakeMesh(skinnedMesh);
+            meshCollider.sharedMesh = skinnedMesh;
+            #endregion
+        }
+
+        public void Add(int index, Vector3 position, Quaternion rotation, float size)
+        {
+            if ((bones.Count + 1) <= bodySettings.MinMaxBones.y)
+            {
+                GameObject boneGameObject = Instantiate(boneTool, root, false);
+                boneGameObject.name = "Bone." + (root.childCount - 1);
+                boneGameObject.layer = LayerMask.NameToLayer("Tools");
+
+                if (bones.Count == 0)
+                {
+                    DestroyImmediate(boneGameObject.GetComponent<HingeJoint>());
+                }
+
+                bones.Insert(index, new Bone(position, rotation, size));
+
+                Setup();
             }
         }
-    }
-
-    [ContextMenu("Debug/Hide")]
-    private void HideVertices()
-    {
-        if (displayVerticesCoroutine != null)
+        public void AddToFront()
         {
-            StopCoroutine(displayVerticesCoroutine);
+            UpdateBoneConfiguration();
+
+            Vector3 position = bones[0].Position - root.GetChild(0).forward * bodySettings.Length;
+            Quaternion rotation = bones[0].Rotation;
+
+            Add(0, position, rotation, Mathf.Clamp(bones[0].Size * 0.75f, 0f, 100f));
+        }
+        public void AddToBack()
+        {
+            UpdateBoneConfiguration();
+
+            Vector3 position = bones[bones.Count - 1].Position + root.GetChild(bones.Count - 1).forward * bodySettings.Length;
+            Quaternion rotation = bones[bones.Count - 1].Rotation;
+
+            Add(bones.Count, position, rotation, Mathf.Clamp(bones[bones.Count - 1].Size * 0.75f, 0f, 100f));
         }
 
-        gizmoVertices.Clear();
-    }
+        public void Remove(int index)
+        {
+            if ((bones.Count - 1) >= bodySettings.MinMaxBones.x)
+            {
+                DestroyImmediate(root.GetChild(root.childCount - 1).gameObject);
 
-    [ContextMenu("Debug/Clear")]
-    private void Clear()
-    {
-        vertices.Clear();
-        triangles.Clear();
+                bones.RemoveAt(index);
 
-        HideVertices();
-    }
-    #endregion
-    #endregion
+                Setup();
+            }
+        }
+        public void RemoveFromFront()
+        {
+            UpdateBoneConfiguration();
 
-    #region Inner Classes
-    [Serializable]
-    public class BodySettings
-    {
-        #region Fields
-        [Header("General")]
-        [SerializeField] private Vector2Int minMaxSegments = new Vector2Int(2, 10);
+            Remove(0);
+        }
+        public void RemoveFromBack()
+        {
+            UpdateBoneConfiguration();
 
-        [Header("Segment")]
-        [SerializeField] private float radius = 0.25f;
-        [SerializeField] private float length = 0.5f;
-        [SerializeField] [Range(4, 100)] private int segments = 20;
-        [SerializeField] [Range(2, 100)] private int rings = 20;
+            Remove(root.childCount - 1);
+        }
+
+        private void UpdateBoneConfiguration()
+        {
+            for (int boneIndex = 0; boneIndex < bones.Count; boneIndex++)
+            {
+                bones[boneIndex].Position = root.GetChild(boneIndex).localPosition;
+                bones[boneIndex].Rotation = root.GetChild(boneIndex).localRotation;
+                bones[boneIndex].Size = skinnedMeshRenderer.GetBlendShapeWeight(boneIndex);
+            }
+        }
+
+        #region Debugging
+        private List<Vector3> gizmoVertices = new List<Vector3>();
+        private Coroutine displayVerticesCoroutine;
+        private float displayInterval = 0.001f;
+
+        private void OnDrawGizmos()
+        {
+            if (gizmoVertices == null || gizmoVertices.Count == 0) { return; }
+
+            foreach (Vector3 vertex in gizmoVertices)
+            {
+                Gizmos.DrawSphere(vertex + transform.position, 0.005f);
+            }
+        }
+
+        [ContextMenu("Debug/Display")]
+        public void DisplayVertices()
+        {
+            HideVertices();
+            displayVerticesCoroutine = StartCoroutine(DisplayVerticesRoutine(displayInterval));
+        }
+        private IEnumerator DisplayVerticesRoutine(float time)
+        {
+            foreach (Vector3 vertex in mesh.vertices)
+            {
+                gizmoVertices.Add(vertex);
+
+                if (time > 0)
+                {
+                    yield return new WaitForSeconds(time);
+                }
+            }
+        }
+        [ContextMenu("Debug/Hide")]
+        private void HideVertices()
+        {
+            if (displayVerticesCoroutine != null)
+            {
+                StopCoroutine(displayVerticesCoroutine);
+            }
+
+            gizmoVertices.Clear();
+        }
+        #endregion
         #endregion
 
-        #region Properties
-        public Vector2Int MinMaxSegments { get { return minMaxSegments; } }
+        #region Inner Classes
+        [Serializable]
+        public class BodySettings
+        {
+            #region Fields
+            [Header("General")]
+            [SerializeField] private Vector2Int minMaxBones = new Vector2Int(2, 10);
 
-        public float Radius { get { return radius; } }
-        public float Length { get { return length; } }
-        public int Segments { get { return segments; } }
-        public int Rings { get { return rings; } }
+            [Header("Bone")]
+            [SerializeField] private float radius = 0.25f;
+            [SerializeField] private float length = 0.5f;
+            [SerializeField] [Range(4, 100)] private int segments = 20;
+            [SerializeField] [Range(2, 100)] private int rings = 20;
+            #endregion
 
-        public int SegmentVertCount
-        {
-            get
-            {
-                return segments * rings - segments;
-            }
+            #region Properties
+            public Vector2Int MinMaxBones { get { return minMaxBones; } }
+
+            public float Radius { get { return radius; } }
+            public float Length { get { return length; } }
+            public int Segments { get { return segments; } }
+            public int Rings { get { return rings; } }
+            #endregion
         }
-        public int SegmentTriCount
+
+        [Serializable]
+        public class Bone
         {
-            get
+            [SerializeField] private Vector3 position;
+            [SerializeField] private Quaternion rotation;
+            [SerializeField] private float size;
+
+            public Vector3 Position { get { return position; } set { position = value; } }
+            public Quaternion Rotation { get { return rotation; } set { rotation = value; } }
+            public float Size { get { return size; } set { size = value; } }
+
+            public Bone() { }
+
+            public Bone(Vector3 position, Quaternion rotation, float size)
             {
-                return segments * (rings - 1) * 2 * 3;
-            }
-        }
-        public int EndVertCount
-        {
-            get
-            {
-                return segments * (segments / 2 - 2) + (segments + 1) - segments;
-            }
-        }
-        public int EndTriCount
-        {
-            get
-            {
-                return 3 * segments * (segments - 1);
+                this.position = position;
+                this.rotation = rotation;
+                this.size = size;
             }
         }
         #endregion
     }
-    #endregion
 }
