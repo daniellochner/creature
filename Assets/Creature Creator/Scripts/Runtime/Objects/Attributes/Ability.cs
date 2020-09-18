@@ -6,5 +6,7 @@ namespace DanielLochner.Assets.CreatureCreator
     {
         [Header("Ability")]
         [SerializeField] private int level;
+
+        public int Level { get { return level; } }
     }
 }

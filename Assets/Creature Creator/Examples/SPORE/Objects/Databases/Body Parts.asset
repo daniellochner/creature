@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d18d895524e6a104bb6b59092628925b, type: 3}
+  m_Name: Body Parts
+  m_EditorClassIdentifier: 
+  Objects:
+    reorderableList:
+      canAdd: 1
+      canRemove: 1
+      draggable: 1
+      expandable: 1
+      multipleSelection: 1
+      isExpanded: 1
+      label:
+        m_Text: Keys
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+      headerHeight: 18
+      footerHeight: 13
+      slideEasing: 0.15
+      verticalSpacing: 2
+      showDefaultBackground: 1
+      elementDisplayType: 0
+      elementNameProperty: 
+      elementNameOverride: 
+      elementIcon: {fileID: 0}
+    reqReferences: {fileID: 0}
+    isExpanded: 1
+    _keyValues:
+    - mouth-01
+    - mouth-02
+    - eye-01
+    - eye-02
+    - eye-03
+    - ear-01
+    _keys:
+    - mouth-01
+    - mouth-02
+    - eye-01
+    - eye-02
+    - eye-03
+    - ear-01
+    _values:
+    - {fileID: 11400000, guid: 3e2d98c7570642443aa3c05f2b8bf60f, type: 2}
+    - {fileID: 11400000, guid: 4830af903cae61745b6e08de26df1867, type: 2}
+    - {fileID: 11400000, guid: 717aca53b3ce657458792c7d735a832f, type: 2}
+    - {fileID: 11400000, guid: a3668468d43a01945bfe618b74760179, type: 2}
+    - {fileID: 11400000, guid: 9d220efb694cab9459dc92bbcea5e855, type: 2}
+    - {fileID: 11400000, guid: fca5fd922488d9a48a7f716445d8d8f1, type: 2}
