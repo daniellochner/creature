@@ -56,7 +56,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Expand
+  m_Name: Body Part
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: Expanded
@@ -64,7 +64,7 @@ AnimatorController:
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   m_AnimatorLayers:
   - serializedVersion: 5
     m_Name: Base Layer
@@ -151,7 +151,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 7b7b6478e9a906f4280d12f68a9ded9d, type: 2}
+  m_Motion: {fileID: 7400000, guid: 1e69b2fb9fc50b6418f8adb5c263bf9b, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

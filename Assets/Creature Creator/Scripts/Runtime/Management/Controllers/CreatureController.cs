@@ -2,7 +2,6 @@
 // Version: 1.0.0
 // Author: Daniel Lochner
 
-using BasicTools.ButtonInspector;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -227,8 +226,10 @@ namespace DanielLochner.Assets.CreatureCreator
                 Bone bone = data.bones[i];
                 Add(i, bone.Position, bone.Rotation, bone.Size);
             }
-            foreach (AttachedBodyPart attachedBodyPart in data.attachedBodyParts)
+            for (int i = 0; i < data.attachedBodyParts.Count; i++)
             {
+                AttachedBodyPart attachedBodyPart = data.attachedBodyParts[i];
+
                 BodyPartController bpc = Instantiate(DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", attachedBodyPart.BodyPartID).Prefab, root.GetChild(attachedBodyPart.BoneIndex)).GetComponent<BodyPartController>();
                 bpc.gameObject.name = attachedBodyPart.BodyPartID;
 
@@ -256,13 +257,15 @@ namespace DanielLochner.Assets.CreatureCreator
                 }
                 Destroy(components[i]);
             }
-            foreach (Transform child in transform)
+            while (transform.childCount != 0)
             {
-                Destroy(child.gameObject);
+                DestroyImmediate(transform.GetChild(0).gameObject);
             }
+
             transform.position = new Vector3(0f, 0.75f, 0f);
 
             data = new CreatureData();
+            statistics = new CreatureStatistics();
 
             Initialize();
         }
@@ -696,6 +699,7 @@ namespace DanielLochner.Assets.CreatureCreator
             BodyPartController flipped = Instantiate(bpc.gameObject, bpc.transform.parent).GetComponent<BodyPartController>();
 
             flipped.gameObject.name = bpc.gameObject.name;
+            flipped.transform.localScale = new Vector3(-1, 1, 1);
 
             bpc.flipped = flipped;
             flipped.flipped = bpc;
@@ -948,22 +952,6 @@ namespace DanielLochner.Assets.CreatureCreator
             skinnedMeshRenderer.material.SetTexture("_PatternTex", DatabaseManager.GetDatabaseEntry<Texture>("Patterns", patternID));
         }
 
-        private void UpdateBoneConfiguration()
-        {
-            for (int boneIndex = 0; boneIndex < data.bones.Count; boneIndex++)
-            {
-                data.bones[boneIndex].Position = root.GetChild(boneIndex).position;
-                data.bones[boneIndex].Rotation = root.GetChild(boneIndex).rotation;
-                data.bones[boneIndex].Size = skinnedMeshRenderer.GetBlendShapeWeight(boneIndex);
-            }
-        }
-        private void UpdateMeshCollider()
-        {
-            Mesh skinnedMesh = new Mesh();
-            skinnedMeshRenderer.BakeMesh(skinnedMesh);
-            meshCollider.sharedMesh = skinnedMesh;
-        }
-
         public void SetTextured(bool textured)
         {
             mesh.uv = textured ? mesh.uv8 : null; // Must temporarily disable UVs for Quick Outline to work!
@@ -1005,6 +993,22 @@ namespace DanielLochner.Assets.CreatureCreator
         }
         private void SetBodyPartToolsVisibility(bool visible)
         {
+        }
+
+        private void UpdateBoneConfiguration()
+        {
+            for (int boneIndex = 0; boneIndex < data.bones.Count; boneIndex++)
+            {
+                data.bones[boneIndex].Position = root.GetChild(boneIndex).position;
+                data.bones[boneIndex].Rotation = root.GetChild(boneIndex).rotation;
+                data.bones[boneIndex].Size = skinnedMeshRenderer.GetBlendShapeWeight(boneIndex);
+            }
+        }
+        private void UpdateMeshCollider()
+        {
+            Mesh skinnedMesh = new Mesh();
+            skinnedMeshRenderer.BakeMesh(skinnedMesh);
+            meshCollider.sharedMesh = skinnedMesh;
         }
 
         #region Debugging
@@ -1100,6 +1104,15 @@ namespace DanielLochner.Assets.CreatureCreator
             public int Rings { get { return rings; } }
             #endregion
         }
+        [Serializable] public class CreatureData
+        {
+            public List<Bone> bones = new List<Bone>();
+            public List<AttachedBodyPart> attachedBodyParts = new List<AttachedBodyPart>();
+
+            public string patternID = "";
+            public Color primaryColour = Color.white;
+            public Color secondaryColour = Color.black;
+        }
 
         [Serializable] public class Bone
         {
@@ -1124,7 +1137,6 @@ namespace DanielLochner.Assets.CreatureCreator
             }
             #endregion
         }
-
         [Serializable] public class AttachedBodyPart
         {
             #region Fields

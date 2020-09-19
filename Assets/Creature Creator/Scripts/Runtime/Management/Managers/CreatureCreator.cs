@@ -172,6 +172,7 @@ namespace DanielLochner.Assets.CreatureCreator
         {
             UpdateStatistics();
         }
+
         public void Save()
         {
             foreach (char c in Path.GetInvalidFileNameChars())
