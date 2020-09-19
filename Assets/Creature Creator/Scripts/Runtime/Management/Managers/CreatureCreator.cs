@@ -285,13 +285,10 @@ namespace DanielLochner.Assets.CreatureCreator
             primaryColourPicker.SetColour(creature.Data.primaryColour);
             secondaryColourPicker.SetColour(creature.Data.secondaryColour);
 
-            if (creature.Data.patternID != "")
+            patternsToggleGroup.SetAllTogglesOff();
+            if (!string.IsNullOrEmpty(creature.Data.patternID))
             {
                 patternsRT.Find(creature.Data.patternID).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
-            }
-            else
-            {
-                patternsToggleGroup.SetAllTogglesOff();
             }
             creature.SetTextured(creature.Textured);
             patternMaterial.SetColor("_PrimaryCol", primaryColourPicker.Colour);
