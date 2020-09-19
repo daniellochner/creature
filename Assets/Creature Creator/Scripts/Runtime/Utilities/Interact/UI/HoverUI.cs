@@ -8,22 +8,38 @@ namespace DanielLochner.Assets.CreatureCreator
     {
         #region Fields
         [SerializeField] private UnityEvent onEnter;
+        [SerializeField] private UnityEvent onHover;
         [SerializeField] private UnityEvent onExit;
         #endregion
 
         #region Properties
         public UnityEvent OnEnter { get { return onEnter; } }
+        public UnityEvent OnHover { get { return onHover; } }
         public UnityEvent OnExit { get { return onExit; } }
+
+        public bool Entered { get; private set; }
         #endregion
 
         #region Methods
+        private void Update()
+        {
+            if (Entered && onHover != null) { onHover.Invoke(); }
+        }
         public void OnPointerEnter(PointerEventData eventData)
         {
-            OnEnter.Invoke();
+            if (onEnter != null)
+            {
+                onEnter.Invoke();
+            }
+            Entered = true;
         }
         public void OnPointerExit(PointerEventData eventData)
         {
-            OnExit.Invoke();
+            if (onExit != null)
+            {
+                onExit.Invoke();
+            }
+            Entered = false;
         }
         #endregion
     }

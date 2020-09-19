@@ -17,6 +17,7 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private Material bodyMaterial;
         [SerializeField] private GameObject boneTool;
         [SerializeField] private GameObject stretchTool;
+        [SerializeField] private GameObject poofEffect;
         [SerializeField] private AudioClip stretchAudioClip;
         [SerializeField] private AudioClip sizeAudioClip;
         [SerializeField] private AudioClip poofAudioClip;
@@ -237,6 +238,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 bpc.transform.rotation = attachedBodyPart.Rotation;
 
                 SetupBodyPart(bpc);
+                AttachBodyPart(bpc);
 
                 if (Mathf.Abs(bpc.transform.position.x) > settings.MergeThreshold)
                 {
@@ -734,6 +736,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 else
                 {
                     audioSource.PlayOneShot(poofAudioClip);
+                    Instantiate(poofEffect, bpc.drag.IsPressing ? bpc.transform.position : flipped.transform.position, Quaternion.identity);
 
                     Destroy(bpc.gameObject);
                     Destroy(flipped.gameObject);

@@ -6,8 +6,18 @@ public class Menu : MonoBehaviour
     protected Animator animator;
     #endregion
 
+    #region Properties
+    public bool Visible
+    {
+        get
+        {
+            return animator.IsInTransition(0) || animator.GetBool("Visible");
+        }
+    }
+    #endregion
+
     #region Methods
-    private void Awake()
+    protected virtual void Awake()
     {
         animator = GetComponent<Animator>();
 

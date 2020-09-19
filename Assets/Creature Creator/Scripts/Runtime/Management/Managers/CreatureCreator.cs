@@ -31,10 +31,11 @@ namespace DanielLochner.Assets.CreatureCreator
         [Header("Build")]
         [SerializeField] private Menu buildMenu;
         [SerializeField] private GameObject bodyPartPrefab;
+        [SerializeField] private GameObject statisticsMenuPrefab;
         [SerializeField] private RectTransform bodyPartsRT;
         [SerializeField] private BodyPartGrids bodyPartGrids;
         [Space]
-        [SerializeField] private int cash = 1000;
+        [SerializeField] private int startingCash = 1000;
         [SerializeField] private TextMeshProUGUI cashText;
         [SerializeField] private Animator cashWarningAnimator;
         [SerializeField] private TextMeshProUGUI complexityText;
@@ -64,11 +65,16 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private AudioClip whooshAudioClip;
         [SerializeField] private AudioClip errorAudioClip;
         [SerializeField] private AudioClip createAudioClip;
+
+        private int cash;
+        private StatisticsMenu statisticsMenu;
         #endregion
 
         #region Methods
         private void Start()
         {
+            SetCash(startingCash);
+
             #region Creature
             creature.Add(0, creature.transform.position, creature.transform.rotation, 0f);
             creature.AddToBack();
@@ -78,15 +84,20 @@ namespace DanielLochner.Assets.CreatureCreator
             #endregion
 
             #region UI
-            cashText.text = "$" + cash;
-
+            statisticsMenu = Instantiate(statisticsMenuPrefab, Dynamic.Canvas).GetComponent<StatisticsMenu>();
             foreach (string bodyPartID in DatabaseManager.GetDatabase("Body Parts").Objects.Keys)
             {
                 BodyPart bodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", bodyPartID);
 
-                GameObject bodyPartIcon = Instantiate(bodyPartPrefab, bodyPartGrids[bodyPart.GetType().Name].GetComponent<RectTransform>());
+                GameObject bodyPartGO = Instantiate(bodyPartPrefab, bodyPartGrids[bodyPart.GetType().Name].GetComponent<RectTransform>());
+                Animator bodyPartAnimator = bodyPartGO.GetComponent<Animator>();
 
-                DragUI dragUI = bodyPartIcon.GetComponent<DragUI>();
+                DragUI dragUI = bodyPartGO.GetComponent<DragUI>();
+                dragUI.OnPress.AddListener(delegate
+                {
+                    bodyPartAnimator.SetBool("Expanded", false);
+                    statisticsMenu.Hide();
+                });
                 dragUI.OnRelease.AddListener(delegate
                 {
                     bodyPartGrids[bodyPart.GetType().Name].enabled = false;
@@ -132,7 +143,42 @@ namespace DanielLochner.Assets.CreatureCreator
                     }
                 });
 
-                bodyPartIcon.transform.Find("Icon").GetComponent<Image>().sprite = bodyPart.Icon;
+                HoverUI hoverUI = bodyPartGO.GetComponent<HoverUI>();
+                hoverUI.OnEnter.AddListener(delegate
+                {
+                    if (!Input.GetMouseButton(0))
+                    {
+                        bodyPartAnimator.SetBool("Expanded", true);
+
+                        statisticsMenu.nameText.text = bodyPart.name;
+                        statisticsMenu.complexityText.text = bodyPart.Complexity.ToString();
+                        statisticsMenu.healthText.text = bodyPart.Health.ToString();
+
+                        statisticsMenu.dietText.transform.parent.gameObject.SetActive(bodyPart is Mouth);
+                        if (bodyPart is Mouth)
+                        {
+                            statisticsMenu.dietText.text = (bodyPart as Mouth).Diet.ToString();
+                        }
+
+                        statisticsMenu.speedText.transform.parent.gameObject.SetActive(bodyPart is Limb);
+                        if (bodyPart is Limb)
+                        {
+                            statisticsMenu.speedText.text = (bodyPart as Limb).Speed.ToString();
+                        }
+
+                        statisticsMenu.Display();
+                        statisticsMenu.Entered = true;
+                    }
+                });
+                hoverUI.OnExit.AddListener(delegate
+                {
+                    bodyPartAnimator.SetBool("Expanded", false);
+                    statisticsMenu.Entered = false;
+
+                    Invoke("HideStatistics", 0.15f);
+                });
+
+                bodyPartGO.transform.Find("Icon").GetComponent<Image>().sprite = bodyPart.Icon;
             }
 
             foreach (string patternID in DatabaseManager.GetDatabase("Patterns").Objects.Keys)
@@ -145,6 +191,20 @@ namespace DanielLochner.Assets.CreatureCreator
                 Toggle patternToggle = patternGO.GetComponent<Toggle>();
                 Image graphic = patternToggle.graphic as Image;
                 Image targetGraphic = patternToggle.targetGraphic as Image;
+
+                Animator patternAnimator = patternGO.GetComponent<Animator>();
+                HoverUI hoverUI = patternGO.GetComponent<HoverUI>();
+                hoverUI.OnEnter.AddListener(delegate
+                {
+                    if (!Input.GetMouseButton(0))
+                    {
+                        patternAnimator.SetBool("Expanded", true);
+                    }
+                });
+                hoverUI.OnExit.AddListener(delegate
+                {
+                    patternAnimator.SetBool("Expanded", false);
+                });
 
                 graphic.sprite = targetGraphic.sprite = Sprite.Create(pattern as Texture2D, new Rect(0, 0, pattern.width, pattern.height), new Vector2(0.5f, 0.5f));
                 graphic.material = targetGraphic.material = patternMaterial;
@@ -163,12 +223,29 @@ namespace DanielLochner.Assets.CreatureCreator
                 patternToggle.group = patternsToggleGroup;
             }
 
-            UpdateCreatures(); // Loadable creatures.
+            string creaturesPath = Application.persistentDataPath + "/Creatures/";
+            if (Directory.Exists(creaturesPath))
+            {
+                foreach (string creaturePath in Directory.GetFiles(creaturesPath))
+                {
+                    AddCreature(creaturePath);
+                }
+            }
             #endregion
         }
+
         private void Update()
         {
+            if (statisticsMenu.Visible)
+            {
+                statisticsMenu.transform.position = Input.mousePosition;
+            }
             UpdateStatistics();
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                ConfirmationMenu.Confirm("Quit", "Are you sure you want to exit?", yesEvent: delegate { Application.Quit(); });
+            }
         }
 
         public void Save()
@@ -178,15 +255,17 @@ namespace DanielLochner.Assets.CreatureCreator
                 creatureName.text = creatureName.text.Replace(c.ToString(), "");
             }
             creatureName.text = creatureName.text.Trim();
-
             if (string.IsNullOrEmpty(creatureName.text)) { return; }
-
             creature.Save(creatureName.text);
 
-            UpdateCreatures();
+            AddCreature(Application.persistentDataPath + "/Creatures/" + creatureName.text + ".json");
+            creaturesRT.Find(creatureName.text).GetComponent<Toggle>().isOn = true;
         }
         public void Load()
         {
+            SetCash(startingCash);
+
+            #region Creature
             string selectedCreatureName = "";
             foreach (Toggle creatureToggle in creaturesRT.GetComponentsInChildren<Toggle>())
             {
@@ -198,10 +277,10 @@ namespace DanielLochner.Assets.CreatureCreator
             }
             if (string.IsNullOrEmpty(selectedCreatureName)) { return; }
 
-            // Creature
             creature.Load(selectedCreatureName);
+            #endregion
 
-            // UI
+            #region UI
             primaryColourPicker.SetColour(creature.Data.primaryColour);
             secondaryColourPicker.SetColour(creature.Data.secondaryColour);
 
@@ -216,38 +295,9 @@ namespace DanielLochner.Assets.CreatureCreator
             creature.SetTextured(creature.Textured);
             patternMaterial.SetColor("_PrimaryCol", primaryColourPicker.Colour);
             patternMaterial.SetColor("_SecondaryCol", secondaryColourPicker.Colour);
-
-            UpdateStatistics();
+            #endregion
         }
 
-        public void UpdateCreatures()
-        {
-            string creaturesPath = Application.persistentDataPath + "/Creatures";
-            if (Directory.Exists(creaturesPath))
-            {
-                foreach (string creaturePath in Directory.GetFiles(creaturesPath))
-                {
-                    string creature = Path.GetFileNameWithoutExtension(creaturePath);
-
-                    if (!creaturesRT.Find(creature))
-                    {
-                        GameObject creatureGO = Instantiate(creaturePrefab, creaturesRT);
-
-                        creatureGO.name = creature;
-                        creatureGO.GetComponentInChildren<TextMeshProUGUI>().text = creature;
-
-                        Toggle toggle = creatureGO.GetComponent<Toggle>();
-                        toggle.group = creaturesToggleGroup;
-                        toggle.onValueChanged.AddListener(delegate
-                        {
-                            if (toggle.isOn)
-                            {
-                            }
-                        });
-                    }
-                }
-            }
-        }
         public void UpdateColours()
         {
             creature.SetColours(primaryColourPicker.Colour, secondaryColourPicker.Colour);
@@ -265,6 +315,8 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public void Build()
         {
+            if (buildMenu.Visible) { return; }
+
             cameraOrbit.OffsetPosition = new Vector3(-0.75f, 1f, cameraOrbit.OffsetPosition.z);
 
             buildMenu.Display();
@@ -278,6 +330,8 @@ namespace DanielLochner.Assets.CreatureCreator
         }
         public void Test()
         {
+            if (testMenu.Visible) { return; }
+
             cameraOrbit.OffsetPosition = new Vector3(0f, 1f, cameraOrbit.OffsetPosition.z);
 
             buildMenu.Hide();
@@ -292,6 +346,8 @@ namespace DanielLochner.Assets.CreatureCreator
         }
         public void Paint()
         {
+            if (paintMenu.Visible) { return; }
+
             cameraOrbit.OffsetPosition = new Vector3(0.75f, 1f, cameraOrbit.OffsetPosition.z);
 
             buildMenu.Hide();
@@ -305,10 +361,44 @@ namespace DanielLochner.Assets.CreatureCreator
             creature.SetTextured(true);
         }
 
+        public void SetCash(int cash)
+        {
+            this.cash = cash;
+            cashText.text = "$" + cash;
+        }
         public void AddCash(int cash)
         {
-            this.cash += cash;
-            cashText.text = "$" + this.cash;
+            SetCash(this.cash + cash);
+        }
+        public void AddCreature(string creaturePath)
+        {
+            string creature = Path.GetFileNameWithoutExtension(creaturePath);
+            if (!creaturesRT.Find(creature))
+            {
+                GameObject creatureGO = Instantiate(creaturePrefab, creaturesRT);
+
+                creatureGO.transform.SetAsFirstSibling();
+                creatureGO.name = creature;
+                creatureGO.GetComponentInChildren<TextMeshProUGUI>().text = creature;
+
+                Toggle toggle = creatureGO.GetComponent<Toggle>();
+                toggle.group = creaturesToggleGroup;
+
+                Button button = creatureGO.GetComponentInChildren<Button>();
+                button.onClick.AddListener(delegate
+                {
+                    File.Delete(creaturePath);
+                    Destroy(creatureGO);
+                });
+            }
+        }
+
+        private void HideStatistics()
+        {
+            if (!statisticsMenu.Entered)
+            {
+                statisticsMenu.Hide();
+            }
         }
         #endregion
 

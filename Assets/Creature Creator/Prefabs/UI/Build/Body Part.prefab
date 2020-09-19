@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: -5435175622451547420}
   - component: {fileID: -6463868399609350936}
   - component: {fileID: 2501555089303285585}
-  - component: {fileID: 8717729139271494292}
   m_Layer: 5
   m_Name: Body Part
   m_TagString: Untagged
@@ -107,17 +106,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 8717729139271494292}
-        m_MethodName: SetBool
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
   onDrag:
     m_PersistentCalls:
       m_Calls: []
@@ -149,32 +137,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   onEnter:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 8717729139271494292}
-        m_MethodName: SetBool
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
+      m_Calls: []
   onExit:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 8717729139271494292}
-        m_MethodName: SetBool
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!95 &2501555089303285585
 Animator:
   serializedVersion: 3
@@ -194,19 +160,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &8717729139271494292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6467549742658448689}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 64e3fb357402ca947b1ed321aef48dc1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  parameter: Expanded
 --- !u!1 &8022140845025630507
 GameObject:
   m_ObjectHideFlags: 0
