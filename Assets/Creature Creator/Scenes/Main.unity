@@ -4171,7 +4171,8 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 4e-45, z: 4.951e-42, w: 1.04e-43}
+  m_BoundingSphereOverride: {x: 1.4910711e+19, y: -8.25381e-26, z: -1.1348246e+25,
+    w: 4e-45}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -4302,6 +4303,8 @@ MonoBehaviour:
   stretchAudioClip: {fileID: 8300000, guid: a69d527929ec3ce45b4544108a3bfb7d, type: 3}
   sizeAudioClip: {fileID: 8300000, guid: ae20ed479c5a1434187633fecb940edc, type: 3}
   poofAudioClip: {fileID: 8300000, guid: aaae1fdfbab58e340a99dd434318c6ff, type: 3}
+  holdCursor: {fileID: 2800000, guid: 53816b4d162e8eb41a30023b74f89602, type: 3}
+  defaultCursor: {fileID: 2800000, guid: e777c9a3326976f46abbfe02cff75ae2, type: 3}
   settings:
     maximumComplexity: 50
     mergeThreshold: 0.01
@@ -12451,6 +12454,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f635b8d415f25a47a83d5eb3c7a86b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  transform: {fileID: 2070988702}
+  canvas: {fileID: 1590185771}
 --- !u!1 &2071519529
 GameObject:
   m_ObjectHideFlags: 0

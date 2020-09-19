@@ -15,8 +15,8 @@ MonoBehaviour:
   description: 
   icon: {fileID: 21300000, guid: 5dbebe6ea8545824ca6348ac10a7cc01, type: 3}
   prefab: {fileID: 5001053816167962620, guid: dea322dcee3519a4f9e5d4dd3b5d468f, type: 3}
-  price: 0
-  complexity: 0
-  health: 0
+  price: 25
+  complexity: 1
+  health: 2
   attributes: []
   transformations: 0

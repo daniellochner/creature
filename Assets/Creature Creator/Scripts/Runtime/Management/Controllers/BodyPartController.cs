@@ -5,14 +5,13 @@ namespace DanielLochner.Assets.CreatureCreator
 {
     public class BodyPartController : MonoBehaviour
     {
-        public AttachedBodyPart attachedBodyPart { get; set; }
-
-        public Drag drag;
-        public BodyPartController flipped;
+        public AttachedBodyPart AttachedBodyPart { get; set; }
+        public Drag Drag { get; set; }
+        public BodyPartController Flipped { get; set; }
 
         private void Awake()
         {
-            drag = GetComponent<Drag>();
+            Drag = GetComponent<Drag>();
         }
     }
 }

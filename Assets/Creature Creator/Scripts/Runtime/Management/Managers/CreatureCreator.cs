@@ -85,6 +85,8 @@ namespace DanielLochner.Assets.CreatureCreator
 
             #region UI
             statisticsMenu = Instantiate(statisticsMenuPrefab, Dynamic.Canvas).GetComponent<StatisticsMenu>();
+            patternMaterial = new Material(patternMaterial);
+
             foreach (string bodyPartID in DatabaseManager.GetDatabase("Body Parts").Objects.Keys)
             {
                 BodyPart bodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", bodyPartID);
@@ -136,9 +138,9 @@ namespace DanielLochner.Assets.CreatureCreator
 
                             bpc.gameObject.name = bodyPartID;
 
-                            bpc.drag.Plane = plane;
+                            bpc.Drag.Plane = plane;
                             creature.SetupBodyPart(bpc);
-                            bpc.drag.OnMouseDown();
+                            bpc.Drag.OnMouseDown();
                         }
                     }
                 });
@@ -150,7 +152,7 @@ namespace DanielLochner.Assets.CreatureCreator
                     {
                         bodyPartAnimator.SetBool("Expanded", true);
 
-                        statisticsMenu.nameText.text = bodyPart.name;
+                        statisticsMenu.nameText.text = bodyPart.name + " ($" + bodyPart.Price + ")";
                         statisticsMenu.complexityText.text = bodyPart.Complexity.ToString();
                         statisticsMenu.healthText.text = bodyPart.Health.ToString();
 
@@ -233,7 +235,6 @@ namespace DanielLochner.Assets.CreatureCreator
             }
             #endregion
         }
-
         private void Update()
         {
             if (statisticsMenu.Visible)

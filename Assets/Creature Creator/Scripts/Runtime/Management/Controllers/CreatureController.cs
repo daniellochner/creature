@@ -15,12 +15,17 @@ namespace DanielLochner.Assets.CreatureCreator
         #region Fields
         [SerializeField] private CameraOrbit cameraOrbit;
         [SerializeField] private Material bodyMaterial;
+        [Space]
         [SerializeField] private GameObject boneTool;
         [SerializeField] private GameObject stretchTool;
         [SerializeField] private GameObject poofEffect;
+        [Space]
         [SerializeField] private AudioClip stretchAudioClip;
         [SerializeField] private AudioClip sizeAudioClip;
         [SerializeField] private AudioClip poofAudioClip;
+        [Space]
+        [SerializeField] private Texture2D holdCursor;
+        [SerializeField] private Texture2D defaultCursor;
         [Space]
         [SerializeField] private CreatureSettings settings;
         [SerializeField] private CreatureStatistics statistics;
@@ -66,7 +71,7 @@ namespace DanielLochner.Assets.CreatureCreator
             skinnedMeshRenderer.sharedMesh = mesh = model.AddComponent<MeshFilter>().sharedMesh = new Mesh();
             skinnedMeshRenderer.rootBone = root.transform;
             skinnedMeshRenderer.updateWhenOffscreen = true;
-            skinnedMeshRenderer.material = bodyMaterial;
+            skinnedMeshRenderer.material = new Material(bodyMaterial);
 
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.volume = 0.25f;
@@ -204,6 +209,9 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public void Save(string creatureName)
         {
+            UpdateBoneConfiguration();
+            UpdateAttachedBodyPartsConfiguration();
+
             CreatureData data = new CreatureData()
             {
                 bones = this.data.bones,
@@ -242,12 +250,12 @@ namespace DanielLochner.Assets.CreatureCreator
 
                 if (Mathf.Abs(bpc.transform.position.x) > settings.MergeThreshold)
                 {
-                    bpc.flipped.transform.position = new Vector3(-bpc.transform.position.x, bpc.transform.position.y, bpc.transform.position.z);
-                    bpc.flipped.transform.rotation = Quaternion.Euler(bpc.transform.rotation.eulerAngles.x, -bpc.transform.rotation.eulerAngles.y, -bpc.transform.rotation.eulerAngles.z);
+                    bpc.Flipped.transform.position = new Vector3(-bpc.transform.position.x, bpc.transform.position.y, bpc.transform.position.z);
+                    bpc.Flipped.transform.rotation = Quaternion.Euler(bpc.transform.rotation.eulerAngles.x, -bpc.transform.rotation.eulerAngles.y, -bpc.transform.rotation.eulerAngles.z);
                 }
                 else
                 {
-                    bpc.flipped.gameObject.SetActive(false);
+                    bpc.Flipped.gameObject.SetActive(false);
                 }
             }
             SetColours(data.primaryColour, data.secondaryColour);
@@ -707,11 +715,11 @@ namespace DanielLochner.Assets.CreatureCreator
         {
             BodyPartController flipped = Instantiate(bpc.gameObject, bpc.transform.parent).GetComponent<BodyPartController>();
 
-            flipped.gameObject.name = bpc.gameObject.name;
+            flipped.gameObject.name = bpc.gameObject.name + "(Flipped)";
             flipped.transform.localScale = new Vector3(-1, 1, 1);
 
-            bpc.flipped = flipped;
-            flipped.flipped = bpc;
+            bpc.Flipped = flipped;
+            flipped.Flipped = bpc;
 
             UnityAction onPress = delegate
             {
@@ -720,6 +728,8 @@ namespace DanielLochner.Assets.CreatureCreator
 
                 bpc.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Ignore Raycast"));
                 flipped.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Ignore Raycast"));
+
+                Cursor.SetCursor(holdCursor, Vector2.zero, CursorMode.Auto);
 
                 cameraOrbit.Freeze();
             };
@@ -736,7 +746,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 else
                 {
                     audioSource.PlayOneShot(poofAudioClip);
-                    Instantiate(poofEffect, bpc.drag.IsPressing ? bpc.transform.position : flipped.transform.position, Quaternion.identity);
+                    Instantiate(poofEffect, bpc.Drag.IsPressing ? bpc.transform.position : flipped.transform.position, Quaternion.identity, Dynamic.Transform);
 
                     Destroy(bpc.gameObject);
                     Destroy(flipped.gameObject);
@@ -745,15 +755,17 @@ namespace DanielLochner.Assets.CreatureCreator
                 bpc.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Body"));
                 flipped.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Body"));
 
+                Cursor.SetCursor(defaultCursor, Vector2.zero, CursorMode.Auto);
+
                 cameraOrbit.Unfreeze();
 
-                bpc.drag.Plane = flipped.drag.Plane = new Plane(Vector3.right, Vector3.zero);
+                bpc.Drag.Plane = flipped.Drag.Plane = new Plane(Vector3.right, Vector3.zero);
             };
             UnityAction onDrag = delegate
             {
                 if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(cameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
                 {
-                    bpc.drag.Draggable = false;
+                    bpc.Drag.Draggable = false;
 
                     bpc.transform.position = raycastHit.point;
                     bpc.transform.rotation = Quaternion.LookRotation(raycastHit.normal);
@@ -773,7 +785,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 }
                 else
                 {
-                    bpc.drag.Draggable = true;
+                    bpc.Drag.Draggable = true;
                     flipped.gameObject.SetActive(false);
                 }
             };
@@ -781,7 +793,7 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(cameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
                 {
-                    flipped.drag.Draggable = false;
+                    flipped.Drag.Draggable = false;
 
                     flipped.transform.position = raycastHit.point;
                     flipped.transform.rotation = Quaternion.LookRotation(raycastHit.normal);
@@ -801,17 +813,17 @@ namespace DanielLochner.Assets.CreatureCreator
                 }
                 else
                 {
-                    flipped.drag.Draggable = true;
+                    flipped.Drag.Draggable = true;
                     bpc.gameObject.SetActive(false);
                 }
             };
 
-            bpc.drag.OnPress.AddListener(onPress);
-            bpc.drag.OnDrag.AddListener(onDrag);
-            bpc.drag.OnRelease.AddListener(onRelease);
-            flipped.drag.OnPress.AddListener(onPress);
-            flipped.drag.OnDrag.AddListener(onFlippedDrag);
-            flipped.drag.OnRelease.AddListener(onRelease);
+            bpc.Drag.OnPress.AddListener(onPress);
+            bpc.Drag.OnDrag.AddListener(onDrag);
+            bpc.Drag.OnRelease.AddListener(onRelease);
+            flipped.Drag.OnPress.AddListener(onPress);
+            flipped.Drag.OnDrag.AddListener(onFlippedDrag);
+            flipped.Drag.OnRelease.AddListener(onRelease);
         }
         public void AttachBodyPart(BodyPartController bpc)
         {
@@ -830,10 +842,10 @@ namespace DanielLochner.Assets.CreatureCreator
             }
             #endregion
 
-            if (bpc.attachedBodyPart == null)
+            if (bpc.AttachedBodyPart == null)
             {
-                AttachedBodyPart attachedBodyPart = new AttachedBodyPart(bpc.name, nearestBoneIndex, bpc.transform.position, bpc.transform.rotation);
-                bpc.attachedBodyPart = bpc.flipped.attachedBodyPart = attachedBodyPart;
+                AttachedBodyPart attachedBodyPart = new AttachedBodyPart(bpc.name.Replace("(Flipped)", ""), nearestBoneIndex, bpc.transform.position, bpc.transform.rotation);
+                bpc.AttachedBodyPart = bpc.Flipped.AttachedBodyPart = attachedBodyPart;
 
                 // Data
                 data.attachedBodyParts.Add(attachedBodyPart);
@@ -871,17 +883,17 @@ namespace DanielLochner.Assets.CreatureCreator
         {
             for (int i = 0; i < data.attachedBodyParts.Count; i++)
             {
-                if (data.attachedBodyParts[i] == bpc.attachedBodyPart)
+                if (data.attachedBodyParts[i] == bpc.AttachedBodyPart)
                 {
                     data.attachedBodyParts.RemoveAt(i);
                     break;
                 }
             }
 
-            if (bpc.attachedBodyPart != null)
+            if (bpc.AttachedBodyPart != null)
             {
                 // Statistics
-                BodyPart detachedBodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", bpc.attachedBodyPart.BodyPartID);
+                BodyPart detachedBodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", bpc.AttachedBodyPart.BodyPartID);
                 statistics.Complexity -= detachedBodyPart.Complexity;
                 statistics.Health -= detachedBodyPart.Health;
                 if (detachedBodyPart is Limb)
@@ -915,7 +927,7 @@ namespace DanielLochner.Assets.CreatureCreator
                     }
                 }
 
-                bpc.attachedBodyPart = bpc.flipped.attachedBodyPart = null;
+                bpc.AttachedBodyPart = bpc.Flipped.AttachedBodyPart = null;
             }
         }
 
@@ -1012,6 +1024,16 @@ namespace DanielLochner.Assets.CreatureCreator
                 data.bones[boneIndex].Position = root.GetChild(boneIndex).position;
                 data.bones[boneIndex].Rotation = root.GetChild(boneIndex).rotation;
                 data.bones[boneIndex].Size = skinnedMeshRenderer.GetBlendShapeWeight(boneIndex);
+            }
+        }
+        private void UpdateAttachedBodyPartsConfiguration()
+        {
+            foreach (BodyPartController bpc in root.GetComponentsInChildren<BodyPartController>())
+            {
+                if (bpc.AttachedBodyPart == null || bpc.name.EndsWith("(Flipped)")) { continue; }
+
+                bpc.AttachedBodyPart.Position = bpc.transform.position;
+                bpc.AttachedBodyPart.Rotation = bpc.transform.rotation;
             }
         }
         private void UpdateMeshCollider()
@@ -1158,9 +1180,9 @@ namespace DanielLochner.Assets.CreatureCreator
 
             #region Properties
             public string BodyPartID { get { return bodyPartID; } }
-            public int BoneIndex { get { return boneIndex; } }
-            public Vector3 Position { get { return position; } }
-            public Quaternion Rotation { get { return rotation; } }
+            public int BoneIndex { get { return boneIndex; } set { boneIndex = value; } }
+            public Vector3 Position { get { return position; } set { position = value; } }
+            public Quaternion Rotation { get { return rotation; } set { rotation = value; } }
             #endregion
 
             #region Methods

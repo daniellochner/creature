@@ -2,12 +2,21 @@
 
 public class Dynamic : MonoBehaviour
 {
-    public static Transform Transform { get; private set; }
-    public static Transform Canvas { get; private set; }
-
+    #region Singleton
+    private static Dynamic Instance { get; set; }
     private void Awake()
     {
-        Transform = transform;
-        Canvas = transform.GetChild(0);
+        Instance = this;
     }
+    #endregion
+
+    #region Fields
+    [SerializeField] private new Transform transform;
+    [SerializeField] private Transform canvas;
+    #endregion
+
+    #region Properties
+    public static Transform Transform { get { return Instance.transform; } }
+    public static Transform Canvas { get { return Instance.canvas; } }
+    #endregion
 }
