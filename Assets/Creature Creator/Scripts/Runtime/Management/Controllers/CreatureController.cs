@@ -15,31 +15,29 @@ namespace DanielLochner.Assets.CreatureCreator
     {
         #region Fields
         [SerializeField] private CameraOrbit cameraOrbit;
-
-        [Header("Settings")]
-        [SerializeField] private int maximumComplexity = 20;
-        [SerializeField] private float mergeThreshold = 0.01f;
-        [SerializeField] private Vector2Int minMaxBones = new Vector2Int(2, 20);
-        [SerializeField] private BoneSettings boneSettings;
-        [SerializeField] private CreatureData creatureData;
-
-        [Header("Tools")]
+        [Space]
         [SerializeField] private GameObject boneTool;
-        [SerializeField] private GameObject pivotTool;
-        [SerializeField] private GameObject rotateTool;
         [SerializeField] private GameObject stretchTool;
+        [SerializeField] private AudioClip stretchAudioClip;
+        [SerializeField] private AudioClip sizeAudioClip;
+        [SerializeField] private AudioClip poofAudioClip;
+        [Space]
+        [SerializeField] private CreatureSettings settings;
+        [SerializeField] private CreatureStatistics statistics;
+        [SerializeField] private CreatureData data;
 
         private SkinnedMeshRenderer skinnedMeshRenderer;
         private MeshCollider meshCollider;
+        private AudioSource audioSource;
         private Mesh mesh;
         private Outline outline;
         private Transform root, frontArrow, backArrow;
         #endregion
 
         #region Properties
-        public int MaximumComplexity { get { return maximumComplexity; } }
-
-        public CreatureData CreatureData { get { return creatureData; } }
+        public CreatureSettings Settings { get { return settings; } }
+        public CreatureStatistics Statistics { get { return statistics; } }
+        public CreatureData Data { get { return data; } }
 
         public bool Selected { get; private set; }
         public bool Textured { get; private set; }
@@ -53,7 +51,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
         private void Initialize()
         {
-            #region Body
+            #region Creature
             GameObject model = new GameObject("Model");
             model.transform.SetParent(transform);
             model.transform.localPosition = Vector3.zero;
@@ -69,6 +67,9 @@ namespace DanielLochner.Assets.CreatureCreator
             skinnedMeshRenderer.rootBone = root.transform;
             skinnedMeshRenderer.updateWhenOffscreen = true;
             skinnedMeshRenderer.material = new Material(Shader.Find("Creature Creator/Body"));
+
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.volume = 0.25f;
 
             outline = model.AddComponent<Outline>();
             outline.OutlineWidth = 5f;
@@ -119,7 +120,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
             backArrow = Instantiate(stretchTool).transform;
             frontArrow = Instantiate(stretchTool).transform;
-            frontArrow.Find("Model").localPosition = backArrow.Find("Model").localPosition = Vector3.forward * (boneSettings.Length / 2f + boneSettings.Radius + 0.05f);
+            frontArrow.Find("Model").localPosition = backArrow.Find("Model").localPosition = Vector3.forward * (settings.Length / 2f + settings.Radius + 0.05f);
 
             Drag frontArrowDrag = frontArrow.GetComponentInChildren<Drag>();
             frontArrowDrag.OnPress.AddListener(delegate
@@ -133,23 +134,29 @@ namespace DanielLochner.Assets.CreatureCreator
             frontArrowDrag.OnDrag.AddListener(delegate
             {
                 Vector3 displacement = frontArrowDrag.TargetWorldPosition - frontArrow.position;
-                if (displacement.magnitude > boneSettings.Length)
+                if (displacement.magnitude > settings.Length)
                 {
-                    if (Vector3.Dot(displacement.normalized, frontArrow.forward) > 0.1f && (creatureData.bones.Count + 1) <= minMaxBones.y)
+                    if (Vector3.Dot(displacement.normalized, frontArrow.forward) > 0.1f && (data.bones.Count + 1) <= settings.MinMaxBones.y)
                     {
                         UpdateBoneConfiguration();
 
                         Vector3 direction = (frontArrowDrag.TargetMousePosition - frontArrow.position).normalized;
-                        Vector3 position = creatureData.bones[0].Position + direction * boneSettings.Length;
+                        Vector3 position = data.bones[0].Position + direction * settings.Length;
                         Quaternion rotation = Quaternion.LookRotation(-direction, frontArrow.up);
 
-                        Add(0, position, rotation, Mathf.Clamp(creatureData.bones[0].Size * 0.75f, 0f, 100f));
+                        if (Add(0, position, rotation, Mathf.Clamp(data.bones[0].Size * 0.75f, 0f, 100f)))
+                        {
+                            audioSource.PlayOneShot(stretchAudioClip);
+                        }
 
                         frontArrowDrag.OnMouseDown();
                     }
                     else if (Vector3.Dot(displacement.normalized, frontArrow.forward) < -0.1f)
                     {
-                        RemoveFromFront();
+                        if (RemoveFromFront())
+                        {
+                            audioSource.PlayOneShot(stretchAudioClip);
+                        }
                     }
                 }
             });
@@ -166,23 +173,29 @@ namespace DanielLochner.Assets.CreatureCreator
             backArrowDrag.OnDrag.AddListener(delegate
             {
                 Vector3 displacement = backArrowDrag.TargetWorldPosition - backArrow.position;
-                if (displacement.magnitude > boneSettings.Length)
+                if (displacement.magnitude > settings.Length)
                 {
-                    if (Vector3.Dot(displacement.normalized, backArrow.forward) > 0.1f && (creatureData.bones.Count + 1) <= minMaxBones.y)
+                    if (Vector3.Dot(displacement.normalized, backArrow.forward) > 0.1f && (data.bones.Count + 1) <= settings.MinMaxBones.y)
                     {
                         UpdateBoneConfiguration();
 
                         Vector3 direction = (backArrowDrag.TargetMousePosition - backArrow.position).normalized;
-                        Vector3 position = creatureData.bones[root.childCount - 1].Position + direction * boneSettings.Length;
+                        Vector3 position = data.bones[root.childCount - 1].Position + direction * settings.Length;
                         Quaternion rotation = Quaternion.LookRotation(direction, backArrow.up);
 
-                        Add(root.childCount, position, rotation, Mathf.Clamp(creatureData.bones[root.childCount - 1].Size * 0.75f, 0f, 100f));
+                        if (Add(root.childCount, position, rotation, Mathf.Clamp(data.bones[root.childCount - 1].Size * 0.75f, 0f, 100f)))
+                        {
+                            audioSource.PlayOneShot(stretchAudioClip);
+                        }
 
                         backArrowDrag.OnMouseDown();
                     }
                     else if (Vector3.Dot(displacement.normalized, backArrow.forward) < -0.1f)
                     {
-                        RemoveFromBack();
+                        if (RemoveFromBack())
+                        {
+                            audioSource.PlayOneShot(stretchAudioClip);
+                        }
                     }
                 }
             });
@@ -191,30 +204,30 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public void Save(string creatureName)
         {
-            CreatureData creatureData = new CreatureData()
+            CreatureData data = new CreatureData()
             {
-                bones = this.creatureData.bones,
-                attachedBodyParts = this.creatureData.attachedBodyParts,
+                bones = this.data.bones,
+                attachedBodyParts = this.data.attachedBodyParts,
 
-                patternID = this.creatureData.patternID,
-                primaryColour = this.creatureData.primaryColour,
-                secondaryColour = this.creatureData.secondaryColour
+                patternID = this.data.patternID,
+                primaryColour = this.data.primaryColour,
+                secondaryColour = this.data.secondaryColour
             };
 
-            SaveUtility.Save(JsonUtility.ToJson(creatureData), creatureName + ".json");
+            SaveUtility.Save(JsonUtility.ToJson(data), creatureName + ".json");
         }
         public void Load(string creatureName)
         {
-            CreatureData creatureData = JsonUtility.FromJson<CreatureData>(SaveUtility.Load(creatureName + ".json"));
+            CreatureData data = JsonUtility.FromJson<CreatureData>(SaveUtility.Load(creatureName + ".json"));
 
             Revert();
 
-            for (int i = 0; i < creatureData.bones.Count; i++)
+            for (int i = 0; i < data.bones.Count; i++)
             {
-                Bone bone = creatureData.bones[i];
+                Bone bone = data.bones[i];
                 Add(i, bone.Position, bone.Rotation, bone.Size);
             }
-            foreach (AttachedBodyPart attachedBodyPart in creatureData.attachedBodyParts)
+            foreach (AttachedBodyPart attachedBodyPart in data.attachedBodyParts)
             {
                 BodyPartController bpc = Instantiate(DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", attachedBodyPart.BodyPartID).Prefab, root.GetChild(attachedBodyPart.BoneIndex)).GetComponent<BodyPartController>();
                 bpc.gameObject.name = attachedBodyPart.BodyPartID;
@@ -227,8 +240,8 @@ namespace DanielLochner.Assets.CreatureCreator
                 bpc.flipped.transform.position = new Vector3(-bpc.transform.position.x, bpc.transform.position.y, bpc.transform.position.z);
                 bpc.flipped.transform.rotation = Quaternion.Euler(bpc.transform.rotation.eulerAngles.x, -bpc.transform.rotation.eulerAngles.y, -bpc.transform.rotation.eulerAngles.z);
             }
-            SetColours(creatureData.primaryColour, creatureData.secondaryColour);
-            SetPattern(creatureData.patternID);
+            SetColours(data.primaryColour, data.secondaryColour);
+            SetPattern(data.patternID);
 
             SetSelected(false);
         }
@@ -249,7 +262,7 @@ namespace DanielLochner.Assets.CreatureCreator
             }
             transform.position = new Vector3(0f, 0.75f, 0f);
 
-            creatureData = new CreatureData();
+            data = new CreatureData();
 
             Initialize();
         }
@@ -265,15 +278,15 @@ namespace DanielLochner.Assets.CreatureCreator
             // Top Hemisphere.
             vertices.Add(new Vector3(0, 0, 0));
             boneWeights.Add(new BoneWeight() { boneIndex0 = 0, weight0 = 1 });
-            for (int ringIndex = 1; ringIndex < boneSettings.Segments / 2; ringIndex++)
+            for (int ringIndex = 1; ringIndex < settings.Segments / 2; ringIndex++)
             {
-                float percent = (float)ringIndex / (boneSettings.Segments / 2);
-                float ringRadius = boneSettings.Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
-                float ringDistance = boneSettings.Radius * (-Mathf.Cos(90f * percent * Mathf.Deg2Rad) + 1f);
+                float percent = (float)ringIndex / (settings.Segments / 2);
+                float ringRadius = settings.Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
+                float ringDistance = settings.Radius * (-Mathf.Cos(90f * percent * Mathf.Deg2Rad) + 1f);
 
-                for (int i = 0; i < boneSettings.Segments; i++)
+                for (int i = 0; i < settings.Segments; i++)
                 {
-                    float angle = i * 360f / boneSettings.Segments;
+                    float angle = i * 360f / settings.Segments;
 
                     float x = ringRadius * Mathf.Cos(angle * Mathf.Deg2Rad);
                     float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
@@ -285,30 +298,30 @@ namespace DanielLochner.Assets.CreatureCreator
             }
 
             // Middle Cylinder.
-            for (int ringIndex = 0; ringIndex < boneSettings.Rings * creatureData.bones.Count; ringIndex++)
+            for (int ringIndex = 0; ringIndex < settings.Rings * data.bones.Count; ringIndex++)
             {
-                float boneIndexFloat = (float)ringIndex / boneSettings.Rings;
+                float boneIndexFloat = (float)ringIndex / settings.Rings;
                 int boneIndex = Mathf.FloorToInt(boneIndexFloat);
 
                 float bonePercent = boneIndexFloat - boneIndex;
 
                 int boneIndex0 = (boneIndex > 0) ? boneIndex - 1 : 0;
-                int boneIndex2 = (boneIndex < creatureData.bones.Count - 1) ? boneIndex + 1 : creatureData.bones.Count - 1;
+                int boneIndex2 = (boneIndex < data.bones.Count - 1) ? boneIndex + 1 : data.bones.Count - 1;
                 int boneIndex1 = boneIndex;
 
                 float weight0 = (boneIndex > 0) ? (1f - bonePercent) * 0.5f : 0f;
-                float weight2 = (boneIndex < creatureData.bones.Count - 1) ? bonePercent * 0.5f : 0f;
+                float weight2 = (boneIndex < data.bones.Count - 1) ? bonePercent * 0.5f : 0f;
                 float weight1 = 1f - (weight0 + weight2);
 
-                for (int i = 0; i < boneSettings.Segments; i++)
+                for (int i = 0; i < settings.Segments; i++)
                 {
-                    float angle = i * 360f / boneSettings.Segments;
+                    float angle = i * 360f / settings.Segments;
 
-                    float x = boneSettings.Radius * Mathf.Cos(angle * Mathf.Deg2Rad);
-                    float y = boneSettings.Radius * Mathf.Sin(angle * Mathf.Deg2Rad);
-                    float z = ringIndex * boneSettings.Length / boneSettings.Rings;
+                    float x = settings.Radius * Mathf.Cos(angle * Mathf.Deg2Rad);
+                    float y = settings.Radius * Mathf.Sin(angle * Mathf.Deg2Rad);
+                    float z = ringIndex * settings.Length / settings.Rings;
 
-                    vertices.Add(new Vector3(x, y, boneSettings.Radius + z));
+                    vertices.Add(new Vector3(x, y, settings.Radius + z));
                     boneWeights.Add(new BoneWeight()
                     {
                         boneIndex0 = boneIndex0,
@@ -322,26 +335,26 @@ namespace DanielLochner.Assets.CreatureCreator
             }
 
             // Bottom Hemisphere.
-            for (int ringIndex = 0; ringIndex < boneSettings.Segments / 2; ringIndex++)
+            for (int ringIndex = 0; ringIndex < settings.Segments / 2; ringIndex++)
             {
-                float percent = (float)ringIndex / (boneSettings.Segments / 2);
-                float ringRadius = boneSettings.Radius * Mathf.Cos(90f * percent * Mathf.Deg2Rad);
-                float ringDistance = boneSettings.Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
+                float percent = (float)ringIndex / (settings.Segments / 2);
+                float ringRadius = settings.Radius * Mathf.Cos(90f * percent * Mathf.Deg2Rad);
+                float ringDistance = settings.Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
 
-                for (int i = 0; i < boneSettings.Segments; i++)
+                for (int i = 0; i < settings.Segments; i++)
                 {
-                    float angle = i * 360f / boneSettings.Segments;
+                    float angle = i * 360f / settings.Segments;
 
                     float x = ringRadius * Mathf.Cos(angle * Mathf.Deg2Rad);
                     float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
                     float z = ringDistance;
 
-                    vertices.Add(new Vector3(x, y, boneSettings.Radius + (boneSettings.Length * creatureData.bones.Count) + z));
-                    boneWeights.Add(new BoneWeight() { boneIndex0 = creatureData.bones.Count - 1, weight0 = 1 });
+                    vertices.Add(new Vector3(x, y, settings.Radius + (settings.Length * data.bones.Count) + z));
+                    boneWeights.Add(new BoneWeight() { boneIndex0 = data.bones.Count - 1, weight0 = 1 });
                 }
             }
-            vertices.Add(new Vector3(0, 0, 2f * boneSettings.Radius + (boneSettings.Length * creatureData.bones.Count)));
-            boneWeights.Add(new BoneWeight() { boneIndex0 = creatureData.bones.Count - 1, weight0 = 1 });
+            vertices.Add(new Vector3(0, 0, 2f * settings.Radius + (settings.Length * data.bones.Count)));
+            boneWeights.Add(new BoneWeight() { boneIndex0 = data.bones.Count - 1, weight0 = 1 });
 
             mesh.vertices = vertices.ToArray();
             mesh.boneWeights = boneWeights.ToArray();
@@ -351,9 +364,9 @@ namespace DanielLochner.Assets.CreatureCreator
             List<int> triangles = new List<int>();
 
             // Top Cap.
-            for (int i = 0; i < boneSettings.Segments; i++)
+            for (int i = 0; i < settings.Segments; i++)
             {
-                int seamOffset = i != boneSettings.Segments - 1 ? 0 : boneSettings.Segments;
+                int seamOffset = i != settings.Segments - 1 ? 0 : settings.Segments;
 
                 triangles.Add(0);
                 triangles.Add(i + 2 - seamOffset);
@@ -361,30 +374,30 @@ namespace DanielLochner.Assets.CreatureCreator
             }
 
             // Main.
-            int rings = (boneSettings.Rings * creatureData.bones.Count) + (2 * (boneSettings.Segments / 2 - 1));
+            int rings = (settings.Rings * data.bones.Count) + (2 * (settings.Segments / 2 - 1));
             for (int ringIndex = 0; ringIndex < rings; ringIndex++)
             {
-                int ringOffset = 1 + ringIndex * boneSettings.Segments;
+                int ringOffset = 1 + ringIndex * settings.Segments;
 
-                for (int i = 0; i < boneSettings.Segments; i++)
+                for (int i = 0; i < settings.Segments; i++)
                 {
-                    int seamOffset = i != boneSettings.Segments - 1 ? 0 : boneSettings.Segments;
+                    int seamOffset = i != settings.Segments - 1 ? 0 : settings.Segments;
 
                     triangles.Add(ringOffset + i);
                     triangles.Add(ringOffset + i + 1 - seamOffset);
-                    triangles.Add(ringOffset + i + 1 - seamOffset + boneSettings.Segments);
+                    triangles.Add(ringOffset + i + 1 - seamOffset + settings.Segments);
 
-                    triangles.Add(ringOffset + i + 1 - seamOffset + boneSettings.Segments);
-                    triangles.Add(ringOffset + i + boneSettings.Segments);
+                    triangles.Add(ringOffset + i + 1 - seamOffset + settings.Segments);
+                    triangles.Add(ringOffset + i + settings.Segments);
                     triangles.Add(ringOffset + i);
                 }
             }
 
             // Bottom Cap.
-            int topIndex = 1 + (rings + 1) * boneSettings.Segments;
-            for (int i = 0; i < boneSettings.Segments; i++)
+            int topIndex = 1 + (rings + 1) * settings.Segments;
+            for (int i = 0; i < settings.Segments; i++)
             {
-                int seamOffset = i != boneSettings.Segments - 1 ? 0 : boneSettings.Segments;
+                int seamOffset = i != settings.Segments - 1 ? 0 : settings.Segments;
 
                 triangles.Add(topIndex);
                 triangles.Add(topIndex - i - 2 + seamOffset);
@@ -401,10 +414,10 @@ namespace DanielLochner.Assets.CreatureCreator
             for (int ringIndex = 0; ringIndex < rings + 1; ringIndex++)
             {
                 float v = ringIndex / (float)rings;
-                for (int i = 0; i < boneSettings.Segments; i++)
+                for (int i = 0; i < settings.Segments; i++)
                 {
-                    float u = i / (float)(boneSettings.Segments - 1);
-                    uv.Add(new Vector2(u, v * (creatureData.bones.Count + 1)));
+                    float u = i / (float)(settings.Segments - 1);
+                    uv.Add(new Vector2(u, v * (data.bones.Count + 1)));
                 }
             }
             uv.Add(Vector2.one);
@@ -413,20 +426,20 @@ namespace DanielLochner.Assets.CreatureCreator
             #endregion
 
             #region Bones
-            Transform[] boneTransforms = new Transform[creatureData.bones.Count];
-            Matrix4x4[] bindPoses = new Matrix4x4[creatureData.bones.Count];
+            Transform[] boneTransforms = new Transform[data.bones.Count];
+            Matrix4x4[] bindPoses = new Matrix4x4[data.bones.Count];
             Vector3[] deltaZeroArray = new Vector3[vertices.Count];
             for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
             {
                 deltaZeroArray[vertIndex] = Vector3.zero;
             }
 
-            for (int boneIndex = 0; boneIndex < creatureData.bones.Count; boneIndex++)
+            for (int boneIndex = 0; boneIndex < data.bones.Count; boneIndex++)
             {
                 boneTransforms[boneIndex] = root.GetChild(boneIndex);
 
                 #region Bind Pose
-                boneTransforms[boneIndex].localPosition = Vector3.forward * (boneSettings.Radius + boneSettings.Length * (0.5f + boneIndex));
+                boneTransforms[boneIndex].localPosition = Vector3.forward * (settings.Radius + settings.Length * (0.5f + boneIndex));
                 boneTransforms[boneIndex].localRotation = Quaternion.identity;
                 bindPoses[boneIndex] = boneTransforms[boneIndex].worldToLocalMatrix * transform.localToWorldMatrix;
                 #endregion
@@ -435,7 +448,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 if (boneIndex > 0)
                 {
                     HingeJoint hingeJoint = boneTransforms[boneIndex].GetComponent<HingeJoint>();
-                    hingeJoint.anchor = new Vector3(0, 0, -boneSettings.Length / 2f);
+                    hingeJoint.anchor = new Vector3(0, 0, -settings.Length / 2f);
                     hingeJoint.connectedBody = boneTransforms[boneIndex - 1].GetComponent<Rigidbody>();
                 }
                 #endregion
@@ -445,15 +458,15 @@ namespace DanielLochner.Assets.CreatureCreator
                 for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
                 {
                     // ROUND
-                    //float distanceToBone = Mathf.Clamp(Vector3.Distance(vertices[vertIndex], boneTransforms[boneIndex].localPosition), 0, 2f * boneSettings.Length);
+                    //float distanceToBone = Mathf.Clamp(Vector3.Distance(vertices[vertIndex], boneTransforms[boneIndex].localPosition), 0, 2f * settings.Length);
                     //Vector3 directionToBone = (vertices[vertIndex] - boneTransforms[boneIndex].localPosition).normalized;
 
-                    //deltaVertices[vertIndex] = directionToBone * (2f * boneSettings.Length - distanceToBone);
+                    //deltaVertices[vertIndex] = directionToBone * (2f * settings.Length - distanceToBone);
 
 
                     // SMOOTH - https://www.desmos.com/calculator/wmpvvtmor8
-                    float maxDistanceAlongBone = boneSettings.Length * 2f;
-                    float maxHeightAboveBone = boneSettings.Radius * 2f;
+                    float maxDistanceAlongBone = settings.Length * 2f;
+                    float maxHeightAboveBone = settings.Radius * 2f;
 
                     float displacementAlongBone = vertices[vertIndex].z - boneTransforms[boneIndex].localPosition.z;
 
@@ -474,10 +487,14 @@ namespace DanielLochner.Assets.CreatureCreator
                 scroll.OnScrollDown.RemoveAllListeners();
                 scroll.OnScrollUp.AddListener(delegate 
                 {
+                    audioSource.PlayOneShot(sizeAudioClip);
+
                     AddWeight(index, 5f);
                 });
                 scroll.OnScrollDown.AddListener(delegate 
                 {
+                    audioSource.PlayOneShot(sizeAudioClip);
+
                     RemoveWeight(index, 5f);
                 });
                 #endregion
@@ -491,20 +508,20 @@ namespace DanielLochner.Assets.CreatureCreator
             #endregion
 
             #region Mesh Deformation
-            for (int boneIndex = 0; boneIndex < creatureData.bones.Count; boneIndex++)
+            for (int boneIndex = 0; boneIndex < data.bones.Count; boneIndex++)
             {
-                boneTransforms[boneIndex].position = creatureData.bones[boneIndex].Position;
-                boneTransforms[boneIndex].rotation = creatureData.bones[boneIndex].Rotation;
-                SetWeight(boneIndex, creatureData.bones[boneIndex].Size);
+                boneTransforms[boneIndex].position = data.bones[boneIndex].Position;
+                boneTransforms[boneIndex].rotation = data.bones[boneIndex].Rotation;
+                SetWeight(boneIndex, data.bones[boneIndex].Size);
             }
 
             UpdateMeshCollider();
             #endregion
         }
         
-        public void Add(int index, Vector3 position, Quaternion rotation, float size)
+        public bool Add(int index, Vector3 position, Quaternion rotation, float size)
         {
-            if ((creatureData.bones.Count + 1) <= minMaxBones.y)
+            if ((data.bones.Count + 1) <= settings.MinMaxBones.y && (statistics.Complexity + 1) <= settings.MaximumComplexity)
             {
                 #region Detach Body Parts
                 BodyPartController[] bpcs = root.GetComponentsInChildren<BodyPartController>();
@@ -521,7 +538,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 boneGameObject.name = "Bone." + (root.childCount - 1);
                 boneGameObject.layer = LayerMask.NameToLayer("Tools");
 
-                if (creatureData.bones.Count == 0)
+                if (data.bones.Count == 0)
                 {
                     DestroyImmediate(boneGameObject.GetComponent<HingeJoint>());
                 }
@@ -575,7 +592,8 @@ namespace DanielLochner.Assets.CreatureCreator
                 backArrow.localRotation = Quaternion.identity;
                 #endregion
 
-                creatureData.bones.Insert(index, new Bone(position, rotation, size));
+                data.bones.Insert(index, new Bone(position, rotation, size));
+                statistics.Complexity++;
 
                 Setup();
 
@@ -585,31 +603,34 @@ namespace DanielLochner.Assets.CreatureCreator
                     AttachBodyPart(bpc);
                 }
                 #endregion
+
+                return true;
             }
+            return false;
         }
-        public void AddToFront()
+        public bool AddToFront()
         {
             UpdateBoneConfiguration();
 
-            Vector3 position = creatureData.bones[0].Position - root.GetChild(0).forward * boneSettings.Length;
-            Quaternion rotation = creatureData.bones[0].Rotation;
+            Vector3 position = data.bones[0].Position - root.GetChild(0).forward * settings.Length;
+            Quaternion rotation = data.bones[0].Rotation;
 
-            Add(0, position, rotation, Mathf.Clamp(creatureData.bones[0].Size * 0.75f, 0f, 100f));
+            return Add(0, position, rotation, Mathf.Clamp(data.bones[0].Size * 0.75f, 0f, 100f));
         }
-        public void AddToBack()
+        public bool AddToBack()
         {
             UpdateBoneConfiguration();
 
-            Vector3 position = creatureData.bones[creatureData.bones.Count - 1].Position + root.GetChild(creatureData.bones.Count - 1).forward * boneSettings.Length;
-            Quaternion rotation = creatureData.bones[creatureData.bones.Count - 1].Rotation;
+            Vector3 position = data.bones[data.bones.Count - 1].Position + root.GetChild(data.bones.Count - 1).forward * settings.Length;
+            Quaternion rotation = data.bones[data.bones.Count - 1].Rotation;
 
-            Add(creatureData.bones.Count, position, rotation, Mathf.Clamp(creatureData.bones[creatureData.bones.Count - 1].Size * 0.75f, 0f, 100f));
+            return Add(data.bones.Count, position, rotation, Mathf.Clamp(data.bones[data.bones.Count - 1].Size * 0.75f, 0f, 100f));
         }
 
-        public void Remove(int index)
+        public bool Remove(int index)
         {
             int bodyPartCount = 0;
-            foreach (AttachedBodyPart attachedBodyPart in creatureData.attachedBodyParts)
+            foreach (AttachedBodyPart attachedBodyPart in data.attachedBodyParts)
             {
                 if (attachedBodyPart.BoneIndex == index)
                 {
@@ -617,7 +638,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 }
             }
 
-            if ((creatureData.bones.Count - 1) >= minMaxBones.x && bodyPartCount == 0)
+            if ((data.bones.Count - 1) >= settings.MinMaxBones.x && bodyPartCount == 0)
             {
                 #region Detach Body Parts
                 BodyPartController[] bpcs = root.GetComponentsInChildren<BodyPartController>();
@@ -639,7 +660,9 @@ namespace DanielLochner.Assets.CreatureCreator
                 #region Bone
                 DestroyImmediate(root.GetChild(root.childCount - 1).gameObject);
 
-                creatureData.bones.RemoveAt(index);
+                data.bones.RemoveAt(index);
+
+                statistics.Complexity--;
                 #endregion
 
                 Setup();
@@ -650,19 +673,22 @@ namespace DanielLochner.Assets.CreatureCreator
                     AttachBodyPart(bpc);
                 }
                 #endregion
+
+                return true;
             }
+            return false;
         }
-        public void RemoveFromFront()
+        public bool RemoveFromFront()
         {
             UpdateBoneConfiguration();
 
-            Remove(0);
+            return Remove(0);
         }
-        public void RemoveFromBack()
+        public bool RemoveFromBack()
         {
             UpdateBoneConfiguration();
 
-            Remove(root.childCount - 1);
+            return Remove(root.childCount - 1);
         }
 
         public void SetupBodyPart(BodyPartController bpc)
@@ -679,7 +705,9 @@ namespace DanielLochner.Assets.CreatureCreator
                 bpc.transform.SetParent(Dynamic.Transform);
                 flipped.transform.SetParent(Dynamic.Transform);
 
-                bpc.gameObject.layer = flipped.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+                bpc.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Ignore Raycast"));
+                flipped.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Ignore Raycast"));
+
                 cameraOrbit.Freeze();
             };
             UnityAction onRelease = delegate
@@ -694,16 +722,18 @@ namespace DanielLochner.Assets.CreatureCreator
                 }
                 else
                 {
+                    audioSource.PlayOneShot(poofAudioClip);
+
                     Destroy(bpc.gameObject);
                     Destroy(flipped.gameObject);
                 }
 
-                bpc.gameObject.layer = flipped.gameObject.layer = LayerMask.NameToLayer("Body");
+                bpc.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Body"));
+                flipped.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Body"));
+
                 cameraOrbit.Unfreeze();
 
                 bpc.drag.Plane = flipped.drag.Plane = new Plane(Vector3.right, Vector3.zero);
-
-                CreatureCreator.Instance.UpdateStatistics();
             };
             UnityAction onDrag = delegate
             {
@@ -714,7 +744,7 @@ namespace DanielLochner.Assets.CreatureCreator
                     bpc.transform.position = raycastHit.point;
                     bpc.transform.rotation = Quaternion.LookRotation(raycastHit.normal);
 
-                    if (Mathf.Abs(bpc.transform.position.x) > mergeThreshold)
+                    if (Mathf.Abs(bpc.transform.position.x) > settings.MergeThreshold)
                     {
                         flipped.gameObject.SetActive(true);
                         flipped.transform.position = new Vector3(-bpc.transform.position.x, bpc.transform.position.y, bpc.transform.position.z);
@@ -742,7 +772,7 @@ namespace DanielLochner.Assets.CreatureCreator
                     flipped.transform.position = raycastHit.point;
                     flipped.transform.rotation = Quaternion.LookRotation(raycastHit.normal);
 
-                    if (Mathf.Abs(flipped.transform.position.x) > mergeThreshold)
+                    if (Mathf.Abs(flipped.transform.position.x) > settings.MergeThreshold)
                     {
                         bpc.gameObject.SetActive(true);
                         bpc.transform.position = new Vector3(-flipped.transform.position.x, flipped.transform.position.y, flipped.transform.position.z);
@@ -771,6 +801,7 @@ namespace DanielLochner.Assets.CreatureCreator
         }
         public void AttachBodyPart(BodyPartController bpc)
         {
+            #region Nearest Bone
             int nearestBoneIndex = -1;
             float minDistance = float.PositiveInfinity;
 
@@ -783,27 +814,95 @@ namespace DanielLochner.Assets.CreatureCreator
                     nearestBoneIndex = boneIndex;
                 }
             }
+            #endregion
 
             if (bpc.attachedBodyPart == null)
             {
                 AttachedBodyPart attachedBodyPart = new AttachedBodyPart(bpc.name, nearestBoneIndex, bpc.transform.position, bpc.transform.rotation);
                 bpc.attachedBodyPart = bpc.flipped.attachedBodyPart = attachedBodyPart;
 
-                creatureData.attachedBodyParts.Add(attachedBodyPart);
+                // Data
+                data.attachedBodyParts.Add(attachedBodyPart);
+
+                // Statistics
+                BodyPart bodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", attachedBodyPart.BodyPartID);
+                statistics.Complexity += bodyPart.Complexity;
+                statistics.Health += bodyPart.Health;
+                if (bodyPart is Mouth && statistics.Diet != Diet.Omnivore) // Omnivore is the preferred diet.
+                {
+                    Mouth mouth = bodyPart as Mouth;
+                    if (mouth.Diet == Diet.Carnivore)
+                    {
+                        statistics.Diet = (statistics.Diet == Diet.Herbivore) ? Diet.Omnivore : Diet.Carnivore;
+                    }
+                    else if (mouth.Diet == Diet.Herbivore)
+                    {
+                        statistics.Diet = (statistics.Diet == Diet.Carnivore) ? Diet.Omnivore : Diet.Herbivore;
+                    }
+                    else
+                    {
+                        statistics.Diet = Diet.Omnivore;
+                    }
+                }
+                else if (bodyPart is Limb)
+                {
+                    statistics.Speed += (bodyPart as Limb).Speed;
+                }
+
+                CreatureCreator.Instance.AddCash(-bodyPart.Price);
             }
             bpc.transform.SetParent(root.GetChild(nearestBoneIndex), true);
         }
         public void DetachBodyPart(BodyPartController bpc)
         {
-            for (int i = 0; i < creatureData.attachedBodyParts.Count; i++)
+            for (int i = 0; i < data.attachedBodyParts.Count; i++)
             {
-                if (creatureData.attachedBodyParts[i] == bpc.attachedBodyPart)
+                if (data.attachedBodyParts[i] == bpc.attachedBodyPart)
                 {
-                    creatureData.attachedBodyParts.RemoveAt(i);
+                    data.attachedBodyParts.RemoveAt(i);
                     break;
                 }
             }
-            bpc.attachedBodyPart = bpc.flipped.attachedBodyPart = null;
+
+            if (bpc.attachedBodyPart != null)
+            {
+                // Statistics
+                BodyPart detachedBodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", bpc.attachedBodyPart.BodyPartID);
+                statistics.Complexity -= detachedBodyPart.Complexity;
+                statistics.Health -= detachedBodyPart.Health;
+                if (detachedBodyPart is Limb)
+                {
+                    statistics.Speed -= (detachedBodyPart as Limb).Speed;
+                }
+
+                CreatureCreator.Instance.AddCash(detachedBodyPart.Price);
+
+                statistics.Diet = Diet.None;
+                foreach (AttachedBodyPart attachedBodyPart in data.attachedBodyParts)
+                {
+                    BodyPart bodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", attachedBodyPart.BodyPartID);
+                    if (bodyPart is Mouth)
+                    {
+                        Mouth mouth = bodyPart as Mouth;
+                        if (mouth.Diet == Diet.Carnivore)
+                        {
+                            statistics.Diet = (statistics.Diet == Diet.Herbivore) ? Diet.Omnivore : Diet.Carnivore;
+                        }
+                        else if (mouth.Diet == Diet.Herbivore)
+                        {
+                            statistics.Diet = (statistics.Diet == Diet.Carnivore) ? Diet.Omnivore : Diet.Herbivore;
+                        }
+                        else
+                        {
+                            statistics.Diet = Diet.Omnivore;
+                        }
+
+                        if (statistics.Diet == Diet.Omnivore) { break; } // Omnivore is the preferred diet.
+                    }
+                }
+
+                bpc.attachedBodyPart = bpc.flipped.attachedBodyPart = null;
+            }
         }
 
         public float GetWeight(int index)
@@ -814,7 +913,7 @@ namespace DanielLochner.Assets.CreatureCreator
         {
             weight = Mathf.Clamp(weight, 0f, 100f);
 
-            creatureData.bones[index].Size = weight;
+            data.bones[index].Size = weight;
             skinnedMeshRenderer.SetBlendShapeWeight(index, weight);
 
             UpdateMeshCollider();
@@ -824,38 +923,38 @@ namespace DanielLochner.Assets.CreatureCreator
             SetWeight(index, GetWeight(index) + amount);
 
             if (index > 0 && (dir == -1 || dir == 0)) { AddWeight(index - 1, amount / 2f, -1); }
-            if (index < creatureData.bones.Count - 1 && (dir == 1 || dir == 0)) { AddWeight(index + 1, amount / 2f, 1); }
+            if (index < data.bones.Count - 1 && (dir == 1 || dir == 0)) { AddWeight(index + 1, amount / 2f, 1); }
         }
         public void RemoveWeight(int index, float amount)
         {
             SetWeight(index, GetWeight(index) - amount);
 
             if (index > 0) { SetWeight(index - 1, GetWeight(index - 1) - amount / 2f); }
-            if (index < creatureData.bones.Count - 1) { SetWeight(index + 1, GetWeight(index + 1) - amount / 2f); }
+            if (index < data.bones.Count - 1) { SetWeight(index + 1, GetWeight(index + 1) - amount / 2f); }
         }
 
         public void SetColours(Color primaryColour, Color secondaryColour)
         {
-            creatureData.primaryColour = primaryColour;
-            creatureData.secondaryColour = secondaryColour;
+            data.primaryColour = primaryColour;
+            data.secondaryColour = secondaryColour;
 
             skinnedMeshRenderer.material.SetColor("_PrimaryCol", primaryColour);
             skinnedMeshRenderer.material.SetColor("_SecondaryCol", secondaryColour);
         }
         public void SetPattern(string patternID)
         {
-            creatureData.patternID = patternID;
+            data.patternID = patternID;
 
             skinnedMeshRenderer.material.SetTexture("_PatternTex", DatabaseManager.GetDatabaseEntry<Texture>("Patterns", patternID));
         }
 
         private void UpdateBoneConfiguration()
         {
-            for (int boneIndex = 0; boneIndex < creatureData.bones.Count; boneIndex++)
+            for (int boneIndex = 0; boneIndex < data.bones.Count; boneIndex++)
             {
-                creatureData.bones[boneIndex].Position = root.GetChild(boneIndex).position;
-                creatureData.bones[boneIndex].Rotation = root.GetChild(boneIndex).rotation;
-                creatureData.bones[boneIndex].Size = skinnedMeshRenderer.GetBlendShapeWeight(boneIndex);
+                data.bones[boneIndex].Position = root.GetChild(boneIndex).position;
+                data.bones[boneIndex].Rotation = root.GetChild(boneIndex).rotation;
+                data.bones[boneIndex].Size = skinnedMeshRenderer.GetBlendShapeWeight(boneIndex);
             }
         }
         private void UpdateMeshCollider()
@@ -868,7 +967,7 @@ namespace DanielLochner.Assets.CreatureCreator
         public void SetTextured(bool textured)
         {
             mesh.uv = textured ? mesh.uv8 : null; // Must temporarily disable UVs for Quick Outline to work!
-            skinnedMeshRenderer.material.SetTexture("_PatternTex", textured ? DatabaseManager.GetDatabaseEntry<Texture>("Patterns", creatureData.patternID) : null);
+            skinnedMeshRenderer.material.SetTexture("_PatternTex", textured ? DatabaseManager.GetDatabaseEntry<Texture>("Patterns", data.patternID) : null);
 
             this.Textured = textured;
         }
@@ -955,9 +1054,35 @@ namespace DanielLochner.Assets.CreatureCreator
         #endregion
 
         #region Inner Classes
-        [Serializable] public class BoneSettings
+        [Serializable] public class CreatureStatistics
         {
             #region Fields
+            [SerializeField] private int complexity = 0;
+            [SerializeField] private Diet diet = Diet.None;
+            [SerializeField] private int speed = 0;
+            [SerializeField] private int health = 0;
+            [SerializeField] private List<Misc> miscAbilities;
+            [SerializeField] private List<Combat> combatAbilities;
+            [SerializeField] private List<Social> socialAbilities;
+            #endregion
+
+            #region Properties
+            public int Complexity { get { return complexity; } set { complexity = value; } }
+            public Diet Diet { get { return diet; } set { diet = value; } }
+            public int Speed { get { return speed; } set { speed = value; } }
+            public int Health { get { return health; } set { health = value; } }
+            public List<Misc> MiscAbilities { get { return miscAbilities; } }
+            public List<Combat> CombatAbilities { get { return combatAbilities; } }
+            public List<Social> SocialAbilities { get { return socialAbilities; } }
+            #endregion
+        }
+        [Serializable] public class CreatureSettings
+        {
+            #region Fields
+            [SerializeField] private int maximumComplexity = 20;
+            [SerializeField] private float mergeThreshold = 0.01f;
+            [SerializeField] private Vector2Int minMaxBones = new Vector2Int(2, 20);
+            [Space]
             [SerializeField] private float radius = 0.05f;
             [SerializeField] private float length = 0.1f;
             [SerializeField] [Range(4, 25)] private int segments = 12;
@@ -965,6 +1090,10 @@ namespace DanielLochner.Assets.CreatureCreator
             #endregion
 
             #region Properties
+            public int MaximumComplexity { get { return maximumComplexity; } }
+            public float MergeThreshold { get { return mergeThreshold; } }
+            public Vector2Int MinMaxBones { get { return minMaxBones; } }
+
             public float Radius { get { return radius; } }
             public float Length { get { return length; } }
             public int Segments { get { return segments; } }

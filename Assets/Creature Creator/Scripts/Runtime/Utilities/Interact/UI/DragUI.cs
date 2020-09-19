@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace DanielLochner.Assets.CreatureCreator
 {
@@ -11,18 +10,19 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private float smoothing = 10f;
         [SerializeField] private bool resetOnRelease = false;
         [SerializeField] private bool draggable = true;
+        [Space]
+        [SerializeField] private UnityEvent onPress;
+        [SerializeField] private UnityEvent onDrag;
+        [SerializeField] private UnityEvent onRelease;
 
         private Vector2 offsetPosition, targetPosition;
         private RectTransform rectTransform;
-
-        private Camera mainCamera;
-        private GridLayoutGroup gridLayoutGroup;
         #endregion
 
         #region Properties
-        public UnityEvent OnPress { get; set; } = new UnityEvent();
-        public UnityEvent OnRelease { get; set; } = new UnityEvent();
-        public UnityEvent OnDrag { get; set; } = new UnityEvent();
+        public UnityEvent OnPress { get { return onPress; } }
+        public UnityEvent OnRelease { get { return onRelease; } }
+        public UnityEvent OnDrag { get { return onDrag; } }
 
         public bool IsPressing { get; set; }
         #endregion
@@ -30,8 +30,6 @@ namespace DanielLochner.Assets.CreatureCreator
         #region Methods
         private void Start()
         {
-            mainCamera = Camera.main;
-
             rectTransform = transform as RectTransform;
         }
         private void Update()

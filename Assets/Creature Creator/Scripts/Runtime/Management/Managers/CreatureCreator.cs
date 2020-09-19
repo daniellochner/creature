@@ -1,13 +1,9 @@
-﻿using BasicTools.ButtonInspector;
-using RotaryHeart.Lib.SerializableDictionary;
+﻿using RotaryHeart.Lib.SerializableDictionary;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
-using static DanielLochner.Assets.CreatureCreator.CreatureController;
 
 namespace DanielLochner.Assets.CreatureCreator
 {
@@ -38,6 +34,7 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private RectTransform bodyPartsRT;
         [SerializeField] private BodyPartGrids bodyPartGrids;
         [Space]
+        [SerializeField] private int cash = 1000;
         [SerializeField] private TextMeshProUGUI cashText;
         [SerializeField] private Animator cashWarningAnimator;
         [SerializeField] private TextMeshProUGUI complexityText;
@@ -61,8 +58,13 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private ColourPicker primaryColourPicker;
         [SerializeField] private ColourPicker secondaryColourPicker;
 
+        [Header("Other")]
+        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioClip whooshAudioClip;
+        [SerializeField] private AudioClip errorAudioClip;
+        [SerializeField] private AudioClip createAudioClip;
+
         private Material patternMaterial;
-        private int cash = 0, complexity;
         #endregion
 
         #region Methods
@@ -78,7 +80,6 @@ namespace DanielLochner.Assets.CreatureCreator
 
             #region UI
             cashText.text = "$" + cash;
-            UpdateStatistics();
 
             foreach (string bodyPartID in DatabaseManager.GetDatabase("Body Parts").Objects.Keys)
             {
@@ -94,29 +95,27 @@ namespace DanielLochner.Assets.CreatureCreator
                 });
                 dragUI.OnDrag.AddListener(delegate
                 {
-                    // Prevent body part from being added.
-                    if (cash < bodyPart.Price)
+                    bool notEnoughCash = (cash < bodyPart.Price);
+                    bool tooComplex = (creature.Statistics.Complexity + bodyPart.Complexity > creature.Settings.MaximumComplexity);
+                    if (notEnoughCash || tooComplex)
                     {
                         dragUI.OnPointerUp(null);
-                        if (!cashWarningAnimator.GetCurrentAnimatorStateInfo(0).IsName("Warning"))
+                        audioSource.PlayOneShot(errorAudioClip);
+
+                        if (notEnoughCash && !cashWarningAnimator.IsInTransition(0) && !cashWarningAnimator.GetCurrentAnimatorStateInfo(0).IsName("Warning"))
                         {
                             cashWarningAnimator.SetTrigger("Warn");
                         }
-                    }
-                    if (complexity + bodyPart.Complexity > creature.MaximumComplexity)
-                    {
-                        dragUI.OnPointerUp(null);
-                        if (!complexityWarningAnimator.GetCurrentAnimatorStateInfo(0).IsName("Warning"))
+                        if (tooComplex && !complexityWarningAnimator.IsInTransition(0) && !complexityWarningAnimator.GetCurrentAnimatorStateInfo(0).IsName("Warning"))
                         {
                             complexityWarningAnimator.SetTrigger("Warn");
                         }
                     }
 
-                    // Drag body part into build area.
                     if (!RectTransformUtility.RectangleContainsScreenPoint(bodyPartsRT, Input.mousePosition))
                     {
                         dragUI.OnPointerUp(null);
-                        SetCash(cash - bodyPart.Price);
+                        audioSource.PlayOneShot(createAudioClip);
 
                         Ray ray = cameraOrbit.Camera.ScreenPointToRay(Input.mousePosition);
                         Plane plane = new Plane(cameraOrbit.Camera.transform.forward, Vector3.zero);
@@ -169,6 +168,10 @@ namespace DanielLochner.Assets.CreatureCreator
             UpdateCreatures(); // Loadable creatures.
             #endregion
         }
+        private void Update()
+        {
+            UpdateStatistics();
+        }
         public void Save()
         {
             foreach (char c in Path.GetInvalidFileNameChars())
@@ -200,12 +203,16 @@ namespace DanielLochner.Assets.CreatureCreator
             creature.Load(selectedCreatureName);
 
             // UI
-            primaryColourPicker.SetColour(creature.CreatureData.primaryColour);
-            secondaryColourPicker.SetColour(creature.CreatureData.secondaryColour);
+            primaryColourPicker.SetColour(creature.Data.primaryColour);
+            secondaryColourPicker.SetColour(creature.Data.secondaryColour);
 
-            if (creature.CreatureData.patternID != "")
+            if (creature.Data.patternID != "")
             {
-                patternsRT.Find(creature.CreatureData.patternID).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
+                patternsRT.Find(creature.Data.patternID).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
+            }
+            else
+            {
+                patternsToggleGroup.SetAllTogglesOff();
             }
             creature.SetTextured(creature.Textured);
             patternMaterial.SetColor("_PrimaryCol", primaryColourPicker.Colour);
@@ -251,48 +258,10 @@ namespace DanielLochner.Assets.CreatureCreator
         }
         public void UpdateStatistics()
         {
-            int complexity = 0;
-            Diet diet = Diet.None;
-            int speed = 0;
-            int health = 0;
-            List<Ability> abilities = new List<Ability>();
-
-            foreach (AttachedBodyPart attachedBodyPart in creature.CreatureData.attachedBodyParts)
-            {
-                BodyPart bodyPart = DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", attachedBodyPart.BodyPartID);
-
-                complexity += bodyPart.Complexity;
-                health += bodyPart.Health;
-
-                if (bodyPart is Mouth && diet != Diet.Omnivore) // Omnivore is the preferred diet.
-                {
-                    diet = (bodyPart as Mouth).Diet;
-                }
-                else if (bodyPart is Limb)
-                {
-                    speed += (bodyPart as Limb).Speed;
-                }
-
-                //foreach (Ability ability in bodyPart.Attributes) // Determine the best abilities.
-                //{
-                //    for (int i = 0; i < abilities.Count; i++)
-                //    {
-                //        if ((ability.GetType() == abilities[i].GetType()) && (ability.Level > abilities[i].Level))
-                //        {
-                //            abilities.RemoveAt(i);
-                //            abilities.Add(ability);
-                //            break;
-                //        }
-                //    }
-                //}
-            }
-
-            complexityText.text = "<b>Complexity:</b> " + complexity + "/" + creature.MaximumComplexity;
-            dietText.text = "<b>Diet:</b> " + diet;
-            speedText.text = "<b>Speed:</b> " + speed;
-            healthText.text = "<b>Health:</b> " + health;
-
-
+            complexityText.text = "<b>Complexity:</b> " + creature.Statistics.Complexity + "/" + creature.Settings.MaximumComplexity;
+            dietText.text = "<b>Diet:</b> " + creature.Statistics.Diet;
+            speedText.text = "<b>Speed:</b> " + creature.Statistics.Speed;
+            healthText.text = "<b>Health:</b> " + creature.Statistics.Health;
         }
 
         public void Build()
@@ -302,6 +271,8 @@ namespace DanielLochner.Assets.CreatureCreator
             buildMenu.Display();
             testMenu.Hide();
             paintMenu.Hide();
+
+            audioSource.PlayOneShot(whooshAudioClip);
 
             creature.SetInteractable(true);
             creature.SetTextured(false);
@@ -313,6 +284,8 @@ namespace DanielLochner.Assets.CreatureCreator
             buildMenu.Hide();
             testMenu.Display();
             paintMenu.Hide();
+
+            audioSource.PlayOneShot(whooshAudioClip);
 
             creature.SetInteractable(false);
             creature.SetSelected(false);
@@ -326,15 +299,17 @@ namespace DanielLochner.Assets.CreatureCreator
             testMenu.Hide();
             paintMenu.Display();
 
+            audioSource.PlayOneShot(whooshAudioClip);
+
             creature.SetInteractable(false);
             creature.SetSelected(false);
             creature.SetTextured(true);
         }
 
-        private void SetCash(int cash)
+        public void AddCash(int cash)
         {
-            this.cash = cash;
-            cashText.text = "$" + cash;
+            this.cash += cash;
+            cashText.text = "$" + this.cash;
         }
         #endregion
 
