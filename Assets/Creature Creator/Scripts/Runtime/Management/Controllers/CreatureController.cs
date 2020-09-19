@@ -238,8 +238,15 @@ namespace DanielLochner.Assets.CreatureCreator
 
                 SetupBodyPart(bpc);
 
-                bpc.flipped.transform.position = new Vector3(-bpc.transform.position.x, bpc.transform.position.y, bpc.transform.position.z);
-                bpc.flipped.transform.rotation = Quaternion.Euler(bpc.transform.rotation.eulerAngles.x, -bpc.transform.rotation.eulerAngles.y, -bpc.transform.rotation.eulerAngles.z);
+                if (Mathf.Abs(bpc.transform.position.x) > settings.MergeThreshold)
+                {
+                    bpc.flipped.transform.position = new Vector3(-bpc.transform.position.x, bpc.transform.position.y, bpc.transform.position.z);
+                    bpc.flipped.transform.rotation = Quaternion.Euler(bpc.transform.rotation.eulerAngles.x, -bpc.transform.rotation.eulerAngles.y, -bpc.transform.rotation.eulerAngles.z);
+                }
+                else
+                {
+                    bpc.flipped.gameObject.SetActive(false);
+                }
             }
             SetColours(data.primaryColour, data.secondaryColour);
             SetPattern(data.patternID);

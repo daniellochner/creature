@@ -133,7 +133,7 @@ namespace DanielLochner.Assets.CreatureCreator
                     }
                 });
 
-                bodyPartIcon.GetComponent<Image>().sprite = bodyPart.Icon;
+                bodyPartIcon.transform.Find("Icon").GetComponent<Image>().sprite = bodyPart.Icon;
             }
 
             patternMaterial = new Material(Shader.Find("Creature Creator/Pattern"));
