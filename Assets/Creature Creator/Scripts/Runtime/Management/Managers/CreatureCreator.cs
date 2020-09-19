@@ -53,6 +53,7 @@ namespace DanielLochner.Assets.CreatureCreator
         [Header("Paint")]
         [SerializeField] private Menu paintMenu;
         [SerializeField] private GameObject patternPrefab;
+        [SerializeField] private Material patternMaterial;
         [SerializeField] private RectTransform patternsRT;
         [SerializeField] private ToggleGroup patternsToggleGroup;
         [SerializeField] private ColourPicker primaryColourPicker;
@@ -63,8 +64,6 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private AudioClip whooshAudioClip;
         [SerializeField] private AudioClip errorAudioClip;
         [SerializeField] private AudioClip createAudioClip;
-
-        private Material patternMaterial;
         #endregion
 
         #region Methods
@@ -136,7 +135,6 @@ namespace DanielLochner.Assets.CreatureCreator
                 bodyPartIcon.transform.Find("Icon").GetComponent<Image>().sprite = bodyPart.Icon;
             }
 
-            patternMaterial = new Material(Shader.Find("Creature Creator/Pattern"));
             foreach (string patternID in DatabaseManager.GetDatabase("Patterns").Objects.Keys)
             {
                 Texture pattern = DatabaseManager.GetDatabaseEntry<Texture>("Patterns", patternID);

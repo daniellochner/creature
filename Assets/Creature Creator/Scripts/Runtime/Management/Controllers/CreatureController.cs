@@ -14,7 +14,7 @@ namespace DanielLochner.Assets.CreatureCreator
     {
         #region Fields
         [SerializeField] private CameraOrbit cameraOrbit;
-        [Space]
+        [SerializeField] private Material bodyMaterial;
         [SerializeField] private GameObject boneTool;
         [SerializeField] private GameObject stretchTool;
         [SerializeField] private AudioClip stretchAudioClip;
@@ -65,7 +65,7 @@ namespace DanielLochner.Assets.CreatureCreator
             skinnedMeshRenderer.sharedMesh = mesh = model.AddComponent<MeshFilter>().sharedMesh = new Mesh();
             skinnedMeshRenderer.rootBone = root.transform;
             skinnedMeshRenderer.updateWhenOffscreen = true;
-            skinnedMeshRenderer.material = new Material(Shader.Find("Creature Creator/Body"));
+            skinnedMeshRenderer.material = bodyMaterial;
 
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.volume = 0.25f;
