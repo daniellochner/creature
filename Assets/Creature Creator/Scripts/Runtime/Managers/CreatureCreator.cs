@@ -265,7 +265,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
             // UI
             AddCreature(creatureName.text);
-            creaturesRT.Find(creatureName.text).GetComponent<Toggle>().isOn = true;
+            creaturesRT.Find(creatureName.text).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
         }
         public void LoadCreature()
         {
@@ -290,7 +290,7 @@ namespace DanielLochner.Assets.CreatureCreator
             primaryColourPicker.SetColour(creature.Data.primaryColour);
             secondaryColourPicker.SetColour(creature.Data.secondaryColour);
 
-            patternsToggleGroup.SetAllTogglesOff();
+            patternsToggleGroup.SetAllTogglesOff(false);
             if (!string.IsNullOrEmpty(creature.Data.patternID))
             {
                 patternsRT.Find(creature.Data.patternID).GetComponent<Toggle>().SetIsOnWithoutNotify(true);

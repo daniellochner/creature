@@ -74,7 +74,11 @@ namespace DanielLochner.Assets.CreatureCreator
             skinnedMeshRenderer.sharedMesh = mesh = model.AddComponent<MeshFilter>().sharedMesh = new Mesh();
             skinnedMeshRenderer.rootBone = root.transform;
             skinnedMeshRenderer.updateWhenOffscreen = true;
-            skinnedMeshRenderer.material = new Material(bodyMaterial);
+
+            skinnedMeshRenderer.sharedMaterial = bodyMaterial;
+            skinnedMeshRenderer.sharedMaterial.SetColor("_PrimaryCol", Color.white);
+            skinnedMeshRenderer.sharedMaterial.SetColor("_SecondaryCol", Color.black);
+            skinnedMeshRenderer.sharedMaterial.SetTexture("_PatternTex", null);
 
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.volume = 0.25f;
@@ -716,21 +720,6 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public void SetupBodyPart(BodyPartController bpc)
         {
-            // Set skin before flipped is instantiated!
-            foreach (Renderer renderer in bpc.GetComponentsInChildren<Renderer>())
-            {
-                Material[] materials = renderer.materials;
-                for (int i = 0; i < renderer.materials.Length; i++)
-                {
-                    if (renderer.materials[i].name.Contains("Skin"))
-                    {
-                        materials[i] = skinnedMeshRenderer.material;
-                    }
-                }
-                renderer.materials = materials;
-            }
-
-
             BodyPartController flipped = Instantiate(bpc.gameObject, bpc.transform.parent).GetComponent<BodyPartController>();
 
             bpc.Flipped = flipped;
@@ -922,22 +911,22 @@ namespace DanielLochner.Assets.CreatureCreator
             data.primaryColour = primaryColour;
             data.secondaryColour = secondaryColour;
 
-            skinnedMeshRenderer.material.SetColor("_PrimaryCol", primaryColour);
-            skinnedMeshRenderer.material.SetColor("_SecondaryCol", secondaryColour);
+            skinnedMeshRenderer.sharedMaterial.SetColor("_PrimaryCol", primaryColour);
+            skinnedMeshRenderer.sharedMaterial.SetColor("_SecondaryCol", secondaryColour);
         }
         public void SetPattern(string patternID)
         {
             data.patternID = patternID;
 
-            skinnedMeshRenderer.material.SetTexture("_PatternTex", DatabaseManager.GetDatabaseEntry<Texture>("Patterns", patternID));
+            skinnedMeshRenderer.sharedMaterial.SetTexture("_PatternTex", DatabaseManager.GetDatabaseEntry<Texture>("Patterns", patternID));
         }
 
         public void SetTextured(bool textured)
         {
             mesh.uv = textured ? mesh.uv8 : null; // Must temporarily disable UVs for Quick Outline to work!
-            skinnedMeshRenderer.material.SetTexture("_PatternTex", textured ? DatabaseManager.GetDatabaseEntry<Texture>("Patterns", data.patternID) : null);
+            skinnedMeshRenderer.sharedMaterial.SetTexture("_PatternTex", textured ? DatabaseManager.GetDatabaseEntry<Texture>("Patterns", data.patternID) : null);
 
-            this.Textured = textured;
+            Textured = textured;
         }
         public void SetInteractable(bool interactable)
         {
