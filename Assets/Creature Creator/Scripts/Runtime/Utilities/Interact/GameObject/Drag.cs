@@ -36,7 +36,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public bool IsPressing { get; set; }
         public Vector3 TargetWorldPosition { get { return targetWorldPosition; } }
-        public bool UseOffsetPosition { get { return useOffsetPosition; } }
+        public bool UseOffsetPosition { get { return useOffsetPosition; } set { useOffsetPosition = value; } }
 
         public Vector3 TargetMousePosition { get; private set; }
 

@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 7302345663561394456}
   - component: {fileID: -8255285788731087017}
   - component: {fileID: 2896583477092687362}
+  - component: {fileID: 5130127836328670282}
+  - component: {fileID: -3479497625587835882}
   m_Layer: 9
   m_Name: Mouth 1
   m_TagString: Untagged
@@ -46,8 +48,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3a730ceebe948b469bd517ab71ee33c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drag: {fileID: -8850116033554122022, guid: dea322dcee3519a4f9e5d4dd3b5d468f, type: 3}
-  flipped: {fileID: 0}
+  minScale: 0.25
+  maxScale: 2.5
+  scaleIncrement: 0.1
 --- !u!114 &-8255285788731087017
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90,6 +93,30 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &5130127836328670282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617120383416285027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1130929e55cd5ff43a05ca7699b6fdf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-3479497625587835882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617120383416285027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f7295b1f7aaa14eb623371ad919a66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3344629995760930792
 GameObject:
   m_ObjectHideFlags: 0
