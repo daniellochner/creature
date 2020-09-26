@@ -4,7 +4,7 @@ Procedurally generate creatures in Unity. Inspired by Spore.
 In short, the creator is divided into three sections: building, painting and testing. Building lets you mold your creature's body, and attach different body parts to it, and painting lets you change the colour and pattern of your creature’s skin!
 
 # How It Was Made:
-[![I Made the SPORE Creature Creator in Unity](https://img.youtube.com/vi/Br_SQAc87s8/0.jpg)](https://www.youtube.com/watch?v=Br_SQAc87s8)
+https://www.youtube.com/watch?v=Br_SQAc87s8
 
 # How To Play:
 * **Camera** - Drag your mouse to rotate the camera around your creature and scroll to zoom in and out! 
