@@ -6,9 +6,9 @@ In [this](https://youtu.be/Br_SQAc87s8) explanation video, I explain how I went 
 Try out the [demo](https://bit.ly/creature-creator-demo) for yourself!
 
 <p align="middle">
-  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjMucG5n/original/1fZLdQ.png" width="100" />
-  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjQucG5n/original/gzAD%2B0.png" width="100" /> 
-  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjUucG5n/original/yuJn7Y.png" />
+  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjMucG5n/original/1fZLdQ.png" width="33%" />
+  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjQucG5n/original/gzAD%2B0.png" width="33%" /> 
+  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjUucG5n/original/yuJn7Y.png" width="33%" />
 </p>
 
 This project is licensed under the [MIT License](LICENSE.md).
