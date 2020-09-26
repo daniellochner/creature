@@ -16,6 +16,7 @@ namespace DanielLochner.Assets.CreatureCreator
         #region Fields
         [SerializeField] private CameraOrbit cameraOrbit;
         [SerializeField] private Material bodyMaterial;
+        [SerializeField] private Material bodyPartMaterial;
         [Space]
         [SerializeField] private GameObject boneTool;
         [SerializeField] private GameObject stretchTool;
@@ -47,6 +48,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public bool Selected { get; private set; }
         public bool Textured { get; private set; }
+        public bool Interactable { get; private set; }
         #endregion
 
         #region Methods
@@ -76,9 +78,8 @@ namespace DanielLochner.Assets.CreatureCreator
             skinnedMeshRenderer.updateWhenOffscreen = true;
 
             skinnedMeshRenderer.sharedMaterial = bodyMaterial;
-            skinnedMeshRenderer.sharedMaterial.SetColor("_PrimaryCol", Color.white);
-            skinnedMeshRenderer.sharedMaterial.SetColor("_SecondaryCol", Color.black);
-            skinnedMeshRenderer.sharedMaterial.SetTexture("_PatternTex", null);
+            SetColours(Color.white, Color.black);
+            SetPattern("");
 
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.volume = 0.25f;
@@ -102,6 +103,12 @@ namespace DanielLochner.Assets.CreatureCreator
                 UpdateBoneConfiguration();
             });
 
+            Click click = gameObject.AddComponent<Click>();
+            click.OnClick.AddListener(delegate
+            {
+                SetSelected(true);
+            });
+
             Hover hover = gameObject.AddComponent<Hover>();
             hover.OnEnter.AddListener(delegate
             {
@@ -122,12 +129,6 @@ namespace DanielLochner.Assets.CreatureCreator
                         SetBonesVisibility(false);
                     }
                 }
-            });
-
-            Click click = gameObject.AddComponent<Click>();
-            click.OnClick.AddListener(delegate
-            {
-                SetSelected(true);
             });
 
             backArrow = Instantiate(stretchTool).transform;
@@ -270,6 +271,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
             SetSelected(false);
             SetTextured(Textured);
+            SetInteractable(Interactable);
         }
 
         public void Clear()
@@ -726,7 +728,7 @@ namespace DanielLochner.Assets.CreatureCreator
             flipped.Flipped = bpc;
 
             flipped.gameObject.name = bpc.gameObject.name + "(Flipped)";
-            flipped.transform.localScale = new Vector3(-1, 1, 1);
+            flipped.transform.localScale = new Vector3(-bpc.transform.localScale.x, bpc.transform.localScale.y, bpc.transform.localScale.z);
 
             #region Interact
             UnityAction onPress = delegate
@@ -911,8 +913,9 @@ namespace DanielLochner.Assets.CreatureCreator
             data.primaryColour = primaryColour;
             data.secondaryColour = secondaryColour;
 
-            skinnedMeshRenderer.sharedMaterial.SetColor("_PrimaryCol", primaryColour);
-            skinnedMeshRenderer.sharedMaterial.SetColor("_SecondaryCol", secondaryColour);
+            bodyMaterial.SetColor("_PrimaryCol", primaryColour);
+            bodyMaterial.SetColor("_SecondaryCol", secondaryColour);
+            bodyPartMaterial.color = primaryColour;
         }
         public void SetPattern(string patternID)
         {
@@ -934,6 +937,7 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 collider.enabled = interactable;
             }
+            Interactable = interactable;
         }
         public void SetSelected(bool selected)
         {
@@ -942,7 +946,7 @@ namespace DanielLochner.Assets.CreatureCreator
             SetBonesVisibility(selected);
             SetArrowsVisibility(selected);
 
-            this.Selected = selected;
+            Selected = selected;
         }
 
         private void SetBonesVisibility(bool visible)

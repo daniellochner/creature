@@ -85,6 +85,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
             creature.SetSelected(false);
             creature.SetTextured(false);
+            creature.SetInteractable(true);
             #endregion
 
             #region UI
