@@ -1,18 +1,13 @@
-# Creature-Creator
-Procedurally generate creatures in Unity. Inspired by Spore.
+# SPORE Creature Creator
+Procedurally generate creatures in Unity - inspired by the incredible game, [Spore!](https://www.spore.com/)
 
-In short, the creator is divided into three sections: building, painting and testing. Building lets you mold your creature's body, and attach different body parts to it, and painting lets you change the colour and pattern of your creature’s skin!
+In the explanation video, I explain how I went about recreating the Spore creature creator in the Unity game engine! The creator itself is divided into three sections, namely, building, painting and testing. Building lets you mold your creature's body, and attach different body parts to it, while painting lets you change the color and pattern of your creature’s skin!
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=Br_SQAc87s8" target="_blank"><img src="http://img.youtube.com/vi/Br_SQAc87s8/0.jpg" alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
-# How It Was Made:
-https://www.youtube.com/watch?v=Br_SQAc87s8
-
-# How To Play:
-* **Camera** - Drag your mouse to rotate the camera around your creature and scroll to zoom in and out! 
-* **Body** - The body is manipulated using the spine, which you are able to move around (by dragging) and add/remove weight to (by using the scroll-wheel)!
-* **Body Parts** - Drag different body parts from the grid and attach them to your creature's body. Body parts each have different statistics, that increase the creature’s overall statistics when added! 
-* **Paint** - Patterns are selected from the patterns grid, and a primary and secondary colour are chosen which replace the white and black of patterns respectively.
+Try out the [Demo!](https://bit.ly/creature-creator-demo)
 
 # Screenshots
-![Building](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjMucG5n/original/1fZLdQ.png)
-![Painting](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjQucG5n/original/gzAD%2B0.png)
-![Testing](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjUucG5n/original/yuJn7Y.png)
+![Building](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjMucG5n/original/1fZLdQ.png) ![Painting](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjQucG5n/original/gzAD%2B0.png) ![Testing](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjUucG5n/original/yuJn7Y.png)
+
+## License
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for more details.
