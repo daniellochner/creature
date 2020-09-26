@@ -1,18 +1,16 @@
-# Creature-Creator
-Procedurally generate creatures in Unity. Inspired by Spore.
+# SPORE Creature Creator
+![Cover Artwork](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDIwMjYucG5n/original/ovyEHp.png)
 
-In short, the creator is divided into three sections: building, painting and testing. Building lets you mold your creature's body, and attach different body parts to it, and painting lets you change the colour and pattern of your creature’s skin!
+Procedurally generate creatures in Unity - inspired by the incredible game, [Spore!](https://www.spore.com/)
 
-# How It Was Made:
-https://www.youtube.com/watch?v=Br_SQAc87s8
+In [this](https://youtu.be/Br_SQAc87s8) video, I explain how I went about recreating the Spore creature creator in the Unity game engine! In short, the creator itself is divided into three sections, namely, building, painting and testing. Building lets you mold your creature's body, and attach different body parts to it, while painting lets you change the color and pattern of your creature’s skin! Because of the limited amount of time I had due to university, I was not able to implement the testing section, however this will definitely be added in a later update!
 
-# How To Play:
-* **Camera** - Drag your mouse to rotate the camera around your creature and scroll to zoom in and out! 
-* **Body** - The body is manipulated using the spine, which you are able to move around (by dragging) and add/remove weight to (by using the scroll-wheel)!
-* **Body Parts** - Drag different body parts from the grid and attach them to your creature's body. Body parts each have different statistics, that increase the creature’s overall statistics when added! 
-* **Paint** - Patterns are selected from the patterns grid, and a primary and secondary colour are chosen which replace the white and black of patterns respectively.
+Try out the [demo](https://bit.ly/creature-creator-demo) for yourself!
 
-# Screenshots
-![Building](/Assets/Screenshots/Building.png)
-![Painting](/Assets/Screenshots/Painting.png)
-![Testing](/Assets/Screenshots/Testing.png)
+<p align="middle">
+  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjMucG5n/original/1fZLdQ.png" width="32%" />
+  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjQucG5n/original/gzAD%2B0.png" width="32%" /> 
+  <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjUucG5n/original/yuJn7Y.png" width="32%" />
+</p>
+
+This project is licensed under the [MIT License](LICENSE.md).
