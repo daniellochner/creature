@@ -532,9 +532,9 @@ namespace DanielLochner.Assets.CreatureCreator
                 }
                 Destroy(components[i]);
             }
-            while (transform.childCount != 0)
+            for (int i = 0; i < transform.childCount; i++)
             {
-                DestroyImmediate(transform.GetChild(0).gameObject);
+                Destroy(transform.GetChild(i).gameObject);
             }
 
             data = new CreatureData();

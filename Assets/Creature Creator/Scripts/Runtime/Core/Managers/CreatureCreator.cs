@@ -300,7 +300,6 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 patternsRT.Find(creature.Data.patternID).GetComponent<Toggle>().SetIsOnWithoutNotify(true);
             }
-            creature.SetTextured(creature.Textured);
             patternMaterial.SetColor("_PrimaryCol", primaryColourPicker.Colour);
             patternMaterial.SetColor("_SecondaryCol", secondaryColourPicker.Colour);
             #endregion
@@ -313,7 +312,8 @@ namespace DanielLochner.Assets.CreatureCreator
             creature.AddToBack();
 
             creature.SetSelected(false);
-            creature.SetTextured(false);
+            creature.SetTextured(creature.Textured);
+            creature.SetInteractable(creature.Interactable);
 
             SetCash(startingCash);
         }

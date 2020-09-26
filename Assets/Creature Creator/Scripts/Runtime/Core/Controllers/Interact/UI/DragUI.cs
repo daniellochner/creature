@@ -38,7 +38,7 @@ namespace DanielLochner.Assets.CreatureCreator
         }
         private void Update()
         {
-            if (IsPressing)
+            if (IsPressing && draggable)
             {
                 if (smoothing > 0)
                 {
