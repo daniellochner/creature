@@ -4262,7 +4262,8 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 4.87e-42, y: 1.01e-43, z: 980710.94, w: 0}
+  m_BoundingSphereOverride: {x: -2.3404263e-24, y: 2.3937171e-21, z: -3.0590932e+31,
+    w: NaN}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -4394,8 +4395,6 @@ MonoBehaviour:
   stretchAudioClip: {fileID: 8300000, guid: a69d527929ec3ce45b4544108a3bfb7d, type: 3}
   sizeAudioClip: {fileID: 8300000, guid: ae20ed479c5a1434187633fecb940edc, type: 3}
   poofAudioClip: {fileID: 8300000, guid: aaae1fdfbab58e340a99dd434318c6ff, type: 3}
-  holdCursor: {fileID: 2800000, guid: 53816b4d162e8eb41a30023b74f89602, type: 3}
-  defaultCursor: {fileID: 2800000, guid: e777c9a3326976f46abbfe02cff75ae2, type: 3}
   settings:
     maximumComplexity: 50
     mergeThreshold: 0.01
