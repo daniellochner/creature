@@ -13,6 +13,6 @@ https://www.youtube.com/watch?v=Br_SQAc87s8
 * **Paint** - Patterns are selected from the patterns grid, and a primary and secondary colour are chosen which replace the white and black of patterns respectively.
 
 # Screenshots
-![Building](/Assets/Screenshots/Building.png)
-![Painting](/Assets/Screenshots/Painting.png)
-![Testing](/Assets/Screenshots/Testing.png)
+![Building](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjMucG5n/original/1fZLdQ.png)
+![Painting](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjQucG5n/original/gzAD%2B0.png)
+![Testing](https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjUucG5n/original/yuJn7Y.png)
