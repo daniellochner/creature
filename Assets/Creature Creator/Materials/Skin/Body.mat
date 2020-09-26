@@ -56,7 +56,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _PatternTex:
-        m_Texture: {fileID: 2800000, guid: 74b501c5902102f41abe96ff90b3dbc2, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 17.07, y: 41.03}
     m_Floats:
@@ -79,5 +79,5 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _PrimaryCol: {r: 0.6320754, g: 0.15511346, b: 0.020870427, a: 1}
-    - _SecondaryCol: {r: 0.9433962, g: 0.21154442, b: 0, a: 1}
+    - _PrimaryCol: {r: 1, g: 0, b: 0, a: 1}
+    - _SecondaryCol: {r: 1, g: 0.40000004, b: 0, a: 1}
