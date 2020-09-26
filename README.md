@@ -10,6 +10,6 @@ In short, the creator is divided into three sections: building, painting and tes
 * **Paint** - Patterns are selected from the patterns grid, and a primary and secondary colour are chosen which replace the white and black of patterns respectively.
 
 # Screenshots
-* ![Building](/Assets/Screenshots/Building.png)
-* ![Painting](/Assets/Screenshots/Painting.png)
-* ![Testing](/Assets/Screenshots/Testing.png)
+![Building](/Assets/Screenshots/Building.png)
+![Painting](/Assets/Screenshots/Painting.png)
+![Testing](/Assets/Screenshots/Testing.png)
