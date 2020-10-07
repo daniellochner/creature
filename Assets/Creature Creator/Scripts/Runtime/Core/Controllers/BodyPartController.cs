@@ -32,7 +32,7 @@ namespace DanielLochner.Assets.CreatureCreator
             hover = GetComponent<Hover>();
             scroll = GetComponent<Scroll>();
         }
-        private void Start()
+        protected virtual void Start()
         {
             hover.OnEnter.AddListener(delegate
             {

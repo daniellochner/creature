@@ -18,7 +18,19 @@ public class SerializableTransform
 
         foreach (Transform child in transform)
         {
-            children.Add(new SerializableTransform(child.transform));
+            children.Add(new SerializableTransform(child));
+        }
+    }
+
+    public static void RecurseUpdate(Transform transform, SerializableTransform serializableTransform)
+    {
+        transform.position = serializableTransform.position;
+        transform.localScale = serializableTransform.scale;
+        transform.rotation = serializableTransform.rotation;
+
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            RecurseUpdate(transform.GetChild(i), serializableTransform.children[i]);
         }
     }
 }

@@ -12,7 +12,6 @@ namespace DanielLochner.Assets.CreatureCreator
     public class CreatureController : MonoBehaviour
     {
         #region Fields
-        [SerializeField] private CameraOrbit cameraOrbit;
         [SerializeField] private Material bodyMaterial;
         [SerializeField] private Material bodyPartMaterial;
         [Space]
@@ -90,11 +89,11 @@ namespace DanielLochner.Assets.CreatureCreator
             Drag drag = gameObject.AddComponent<Drag>();
             drag.OnPress.AddListener(delegate
             {
-                cameraOrbit.Freeze();
+                CreatureCreator.Instance.CameraOrbit.Freeze();
             });
             drag.OnRelease.AddListener(delegate
             {
-                cameraOrbit.Unfreeze();
+                CreatureCreator.Instance.CameraOrbit.Unfreeze();
                 UpdateBoneConfiguration();
             });
 
@@ -109,7 +108,7 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 if (!Input.GetMouseButton(0))
                 {
-                    cameraOrbit.Freeze();
+                    CreatureCreator.Instance.CameraOrbit.Freeze();
                     SetBonesVisibility(true);
                 }
             });
@@ -117,7 +116,7 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 if (!Input.GetMouseButton(0))
                 {
-                    cameraOrbit.Unfreeze();
+                    CreatureCreator.Instance.CameraOrbit.Unfreeze();
 
                     if (!Selected)
                     {
@@ -133,11 +132,11 @@ namespace DanielLochner.Assets.CreatureCreator
             Drag frontArrowDrag = frontArrow.GetComponentInChildren<Drag>();
             frontArrowDrag.OnPress.AddListener(delegate
             {
-                cameraOrbit.Freeze();
+                CreatureCreator.Instance.CameraOrbit.Freeze();
             });
             frontArrowDrag.OnRelease.AddListener(delegate
             {
-                cameraOrbit.Unfreeze();
+                CreatureCreator.Instance.CameraOrbit.Unfreeze();
             });
             frontArrowDrag.OnDrag.AddListener(delegate
             {
@@ -172,11 +171,11 @@ namespace DanielLochner.Assets.CreatureCreator
             Drag backArrowDrag = backArrow.GetComponentInChildren<Drag>();
             backArrowDrag.OnPress.AddListener(delegate
             {
-                cameraOrbit.Freeze();
+                CreatureCreator.Instance.CameraOrbit.Freeze();
             });
             backArrowDrag.OnRelease.AddListener(delegate
             {
-                cameraOrbit.Unfreeze();
+                CreatureCreator.Instance.CameraOrbit.Unfreeze();
             });
             backArrowDrag.OnDrag.AddListener(delegate
             {
@@ -245,7 +244,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 BodyPartController bpc = Instantiate(DatabaseManager.GetDatabaseEntry<BodyPart>("Body Parts", attachedBodyPart.BodyPartID).Prefab, root.GetChild(attachedBodyPart.BoneIndex)).GetComponent<BodyPartController>();
                 bpc.gameObject.name = attachedBodyPart.BodyPartID;
 
-                TransformUtility.RecurseUpdate(bpc.transform, attachedBodyPart.Transform);
+                SerializableTransform.RecurseUpdate(bpc.transform, attachedBodyPart.Transform);
 
                 SetupBodyPart(bpc);
                 AttachBodyPart(bpc);
@@ -572,11 +571,11 @@ namespace DanielLochner.Assets.CreatureCreator
                 Drag drag = boneGameObject.GetComponent<Drag>();
                 drag.OnPress.AddListener(delegate
                 {
-                    cameraOrbit.Freeze();
+                    CreatureCreator.Instance.CameraOrbit.Freeze();
                 });
                 drag.OnRelease.AddListener(delegate
                 {
-                    cameraOrbit.Unfreeze();
+                    CreatureCreator.Instance.CameraOrbit.Unfreeze();
                     UpdateMeshCollider();
                     UpdateBoneConfiguration();
                 });
@@ -586,7 +585,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 {
                     if (!Input.GetMouseButton(0))
                     {
-                        cameraOrbit.Freeze();
+                        CreatureCreator.Instance.CameraOrbit.Freeze();
                         SetBonesVisibility(true);
                     }
                 });
@@ -594,7 +593,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 {
                     if (!Input.GetMouseButton(0))
                     {
-                        cameraOrbit.Unfreeze();
+                        CreatureCreator.Instance.CameraOrbit.Unfreeze();
 
                         if (!Selected)
                         {
@@ -736,14 +735,14 @@ namespace DanielLochner.Assets.CreatureCreator
 
                 //Cursor.SetCursor(holdCursor, Vector2.zero, CursorMode.Auto);
 
-                cameraOrbit.Freeze();
+                CreatureCreator.Instance.CameraOrbit.Freeze();
             };
             UnityAction onRelease = delegate
             {
                 DetachBodyPart(bpc);
                 DetachBodyPart(flipped);
 
-                if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(cameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
+                if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(CreatureCreator.Instance.CameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
                 {
                     AttachBodyPart(bpc);
                     AttachBodyPart(flipped);
@@ -763,13 +762,13 @@ namespace DanielLochner.Assets.CreatureCreator
 
                 //Cursor.SetCursor(defaultCursor, Vector2.zero, CursorMode.Auto);
 
-                cameraOrbit.Unfreeze();
+                CreatureCreator.Instance.CameraOrbit.Unfreeze();
 
                 bpc.Drag.Plane = flipped.Drag.Plane = new Plane(Vector3.right, Vector3.zero);
             };
             UnityAction onDrag = delegate
             {
-                if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(cameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
+                if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(CreatureCreator.Instance.CameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
                 {
                     bpc.Drag.Draggable = false;
 
@@ -797,7 +796,7 @@ namespace DanielLochner.Assets.CreatureCreator
             };
             UnityAction onFlippedDrag = delegate
             {
-                if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(cameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
+                if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(CreatureCreator.Instance.CameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
                 {
                     flipped.Drag.Draggable = false;
 

@@ -12,16 +12,20 @@ namespace DanielLochner.Assets.CreatureCreator
         #region Properties
         public UnityEvent OnEnter { get; set; } = new UnityEvent();
         public UnityEvent OnExit { get; set; } = new UnityEvent();
+
+        public bool IsOver { get; private set; }
         #endregion
 
         #region Methods
         private void OnMouseEnter()
         {
             OnEnter.Invoke();
+            IsOver = true;
         }
         private void OnMouseExit()
         {
             OnExit.Invoke();
+            IsOver = false;
         }
         #endregion
     }

@@ -101,7 +101,7 @@ namespace DanielLochner.Assets.CreatureCreator
         {
             if (mousePlaneAlignment == MousePlaneAlignment.WithCamera)
             {
-                plane.normal = mainCamera.transform.forward;
+                plane = new Plane(mainCamera.transform.forward, transform.position);
             }
 
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);

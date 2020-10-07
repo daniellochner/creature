@@ -2,6 +2,7 @@
 // Version: 1.0.0
 // Author: Daniel Lochner
 
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace DanielLochner.Assets.CreatureCreator
@@ -11,6 +12,18 @@ namespace DanielLochner.Assets.CreatureCreator
         #region Fields
         [SerializeField] private GameObject movePrefab;
         [SerializeField] private Transform root;
+        [SerializeField] private Transform extremity;
+
+        private SkinnedMeshRenderer skinnedMeshRenderer;
+        private MeshCollider meshCollider;
+
+        private Transform[] bones;
+        private List<MeshRenderer> tools = new List<MeshRenderer>();
+        #endregion
+
+        #region Properties
+        public LimbController FlippedLimb { get { return Flipped as LimbController; } }
+        public Transform Extremity { get { return extremity; } }
         #endregion
 
         #region Methods
@@ -18,38 +31,114 @@ namespace DanielLochner.Assets.CreatureCreator
         {
             base.Awake();
 
+            skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
+            meshCollider = GetComponentInChildren<MeshCollider>();
+
+            bones = root.GetComponentsInChildren<Transform>();
+        }
+        protected override void Start()
+        {
+            base.Start();
+
             AddTools(root);
+
+            Hover hover = GetComponent<Hover>();
+            hover.OnEnter.AddListener(delegate
+            {
+                if (!Input.GetMouseButton(0))
+                {
+                    SetToolsVisibility(true);
+                    FlippedLimb.SetToolsVisibility(true);
+                }
+            });
+            hover.OnExit.AddListener(delegate
+            {
+                if (!Input.GetMouseButton(0))
+                {
+                    SetToolsVisibility(false);
+                    FlippedLimb.SetToolsVisibility(false);
+                }
+            });
+
+            UpdateMeshCollider();
+            SetToolsVisibility(false);
         }
 
         private void AddTools(Transform root)
         {
-            foreach (Transform childBone in root)
+            for (int i = 1; i < bones.Length - 1; i++)
             {
-                RecurseAdd(childBone);
+                Transform bone = bones[i];
+                Transform flippedBone = FlippedLimb.bones[i];
+
+                #region Interact
+                GameObject moveGO = Instantiate(movePrefab, bone, false);
+
+                Hover hover = moveGO.GetComponent<Hover>();
+                hover.OnEnter.AddListener(delegate
+                {
+                    if (!Input.GetMouseButton(0))
+                    {
+                        SetToolsVisibility(true);
+                        FlippedLimb.SetToolsVisibility(true);
+                    }
+                });
+                hover.OnExit.AddListener(delegate
+                {
+                    if (!Input.GetMouseButton(0))
+                    {
+                        SetToolsVisibility(false);
+                        FlippedLimb.SetToolsVisibility(false);
+                    }
+                });
+
+                Drag drag = moveGO.GetComponent<Drag>();
+                drag.OnPress.AddListener(delegate
+                {
+                    drag.transform.SetParent(Dynamic.Transform);
+
+                    CreatureCreator.Instance.CameraOrbit.Freeze();
+
+                    SetToolsVisibility(true);
+                    FlippedLimb.SetToolsVisibility(true);
+                });
+                drag.OnDrag.AddListener(delegate
+                {
+                    bone.position = drag.transform.position;
+                    flippedBone.position = new Vector3(-bone.position.x, bone.position.y, bone.position.z);
+                });
+                drag.OnRelease.AddListener(delegate
+                {
+                    drag.transform.SetParent(bone);
+
+                    CreatureCreator.Instance.CameraOrbit.Unfreeze();
+
+                    if (!hover.IsOver && !GetComponent<Hover>().IsOver)
+                    {
+                        SetToolsVisibility(false);
+                        FlippedLimb.SetToolsVisibility(false);
+                    }
+
+                    UpdateMeshCollider();
+                    FlippedLimb.UpdateMeshCollider();
+                });
+
+                tools.Add(moveGO.GetComponent<MeshRenderer>());
+                #endregion
             }
         }
-        private void RecurseAdd(Transform bone)
+        private void SetToolsVisibility(bool visible)
         {
-            foreach (Transform childBone in bone)
+            foreach (MeshRenderer tool in tools)
             {
-                RecurseAdd(childBone);
+                tool.enabled = visible;
             }
-
-            Drag drag = Instantiate(movePrefab, bone, false).GetComponent<Drag>();
-            drag.OnPress.AddListener(delegate
-            {
-                drag.transform.SetParent(Dynamic.Transform);
-                CreatureCreator.Instance.CameraOrbit.Freeze();
-            });
-            drag.OnDrag.AddListener(delegate
-            {
-                bone.transform.position = drag.transform.position;
-            });
-            drag.OnRelease.AddListener(delegate
-            {
-                drag.transform.SetParent(bone);
-                CreatureCreator.Instance.CameraOrbit.Unfreeze();
-            });
+        }
+        private void UpdateMeshCollider()
+        {
+            Mesh skinnedMesh = new Mesh();
+            skinnedMeshRenderer.BakeMesh(skinnedMesh);
+            meshCollider.sharedMesh = skinnedMesh;
         }
         #endregion
     }
