@@ -167,4 +167,5 @@ MonoBehaviour:
     m_Extent: {x: 2, y: 2, z: 2}
   smoothing: 0
   resetOnRelease: 0
+  useOffsetPosition: 1
   draggable: 0

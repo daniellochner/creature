@@ -2,6 +2,7 @@
 // Version: 1.0.0
 // Author: Daniel Lochner
 
+using DitzelGames.FastIK;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,13 +12,12 @@ namespace DanielLochner.Assets.CreatureCreator
     {
         #region Fields
         [SerializeField] private GameObject movePrefab;
-        [SerializeField] private Transform root;
-        [SerializeField] private Transform extremity;
+        [SerializeField] private Transform[] bones;
+        [SerializeField] protected Transform extremity;
 
         private SkinnedMeshRenderer skinnedMeshRenderer;
         private MeshCollider meshCollider;
 
-        private Transform[] bones;
         private List<MeshRenderer> tools = new List<MeshRenderer>();
         #endregion
 
@@ -33,16 +33,68 @@ namespace DanielLochner.Assets.CreatureCreator
 
             skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
             meshCollider = GetComponentInChildren<MeshCollider>();
-
-            bones = root.GetComponentsInChildren<Transform>();
         }
         protected override void Start()
         {
             base.Start();
 
-            AddTools(root);
+            #region Interact
+            for (int i = 0; i < bones.Length; i++)
+            {
+                Transform bone = bones[i];
+                Transform flippedBone = FlippedLimb.bones[i];
 
-            Hover hover = GetComponent<Hover>();
+                #region Interact
+                GameObject moveGO = Instantiate(movePrefab, bone, false);
+
+                Hover boneHover = bone.GetComponent<Hover>();
+                boneHover.OnEnter.AddListener(delegate
+                {
+                    if (!Input.GetMouseButton(0))
+                    {
+                        SetToolsVisibility(true);
+                        FlippedLimb.SetToolsVisibility(true);
+                    }
+                });
+                boneHover.OnExit.AddListener(delegate
+                {
+                    if (!Input.GetMouseButton(0))
+                    {
+                        SetToolsVisibility(false);
+                        FlippedLimb.SetToolsVisibility(false);
+                    }
+                });
+
+                Drag boneDrag = bone.GetComponent<Drag>();
+                boneDrag.OnPress.AddListener(delegate
+                {
+                    CreatureCreator.Instance.CameraOrbit.Freeze();
+
+                    SetToolsVisibility(true);
+                    FlippedLimb.SetToolsVisibility(true);
+                });
+                boneDrag.OnDrag.AddListener(delegate
+                {
+                    flippedBone.position = new Vector3(-bone.position.x, bone.position.y, bone.position.z);
+                });
+                boneDrag.OnRelease.AddListener(delegate
+                {
+                    CreatureCreator.Instance.CameraOrbit.Unfreeze();
+
+                    if (!boneHover.IsOver && !hover.IsOver)
+                    {
+                        SetToolsVisibility(false);
+                        FlippedLimb.SetToolsVisibility(false);
+                    }
+
+                    UpdateMeshCollider();
+                    FlippedLimb.UpdateMeshCollider();
+                });
+
+                tools.Add(moveGO.GetComponent<MeshRenderer>());
+                #endregion
+            }
+
             hover.OnEnter.AddListener(delegate
             {
                 if (!Input.GetMouseButton(0))
@@ -59,74 +111,12 @@ namespace DanielLochner.Assets.CreatureCreator
                     FlippedLimb.SetToolsVisibility(false);
                 }
             });
+            #endregion
 
             UpdateMeshCollider();
             SetToolsVisibility(false);
         }
 
-        private void AddTools(Transform root)
-        {
-            for (int i = 1; i < bones.Length - 1; i++)
-            {
-                Transform bone = bones[i];
-                Transform flippedBone = FlippedLimb.bones[i];
-
-                #region Interact
-                GameObject moveGO = Instantiate(movePrefab, bone, false);
-
-                Hover hover = moveGO.GetComponent<Hover>();
-                hover.OnEnter.AddListener(delegate
-                {
-                    if (!Input.GetMouseButton(0))
-                    {
-                        SetToolsVisibility(true);
-                        FlippedLimb.SetToolsVisibility(true);
-                    }
-                });
-                hover.OnExit.AddListener(delegate
-                {
-                    if (!Input.GetMouseButton(0))
-                    {
-                        SetToolsVisibility(false);
-                        FlippedLimb.SetToolsVisibility(false);
-                    }
-                });
-
-                Drag drag = moveGO.GetComponent<Drag>();
-                drag.OnPress.AddListener(delegate
-                {
-                    drag.transform.SetParent(Dynamic.Transform);
-
-                    CreatureCreator.Instance.CameraOrbit.Freeze();
-
-                    SetToolsVisibility(true);
-                    FlippedLimb.SetToolsVisibility(true);
-                });
-                drag.OnDrag.AddListener(delegate
-                {
-                    bone.position = drag.transform.position;
-                    flippedBone.position = new Vector3(-bone.position.x, bone.position.y, bone.position.z);
-                });
-                drag.OnRelease.AddListener(delegate
-                {
-                    drag.transform.SetParent(bone);
-
-                    CreatureCreator.Instance.CameraOrbit.Unfreeze();
-
-                    if (!hover.IsOver && !GetComponent<Hover>().IsOver)
-                    {
-                        SetToolsVisibility(false);
-                        FlippedLimb.SetToolsVisibility(false);
-                    }
-
-                    UpdateMeshCollider();
-                    FlippedLimb.UpdateMeshCollider();
-                });
-
-                tools.Add(moveGO.GetComponent<MeshRenderer>());
-                #endregion
-            }
-        }
         private void SetToolsVisibility(bool visible)
         {
             foreach (MeshRenderer tool in tools)

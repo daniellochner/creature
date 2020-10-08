@@ -13,8 +13,8 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private float maxScale = 2.5f;
         [SerializeField] private float scaleIncrement = 0.1f;
 
-        private Hover hover;
-        private Scroll scroll;
+        protected Hover hover;
+        protected Scroll scroll;
         #endregion
 
         #region Properties

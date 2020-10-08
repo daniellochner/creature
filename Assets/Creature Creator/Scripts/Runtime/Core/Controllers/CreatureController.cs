@@ -952,11 +952,8 @@ namespace DanielLochner.Assets.CreatureCreator
         }
         private void SetArrowsVisibility(bool visible)
         {
-            frontArrow.GetComponentInChildren<MeshRenderer>().enabled = visible;
-            backArrow.GetComponentInChildren<MeshRenderer>().enabled = visible;
-
-            frontArrow.GetComponentInChildren<Collider>().enabled = visible;
-            backArrow.GetComponentInChildren<Collider>().enabled = visible;
+            frontArrow.gameObject.SetActive(visible);
+            backArrow.gameObject.SetActive(visible);
         }
         private void SetBodyPartToolsVisibility(bool visible)
         {

@@ -13,6 +13,7 @@ namespace DanielLochner.Assets.CreatureCreator
         #region Fields
         [SerializeField] private MousePlaneAlignment mousePlaneAlignment = MousePlaneAlignment.ToLocalDirection;
         [SerializeField] private Vector3 localDirection = new Vector3(1, 0, 0);
+        [SerializeField] private Vector3 worldDirection = new Vector3(1, 0, 0);
         [Space]
         [SerializeField] private float maxDistance = Mathf.Infinity;
         [SerializeField] private EnabledAxes localMovement = new EnabledAxes()
@@ -27,6 +28,7 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private bool resetOnRelease = false;
         [SerializeField] private bool useOffsetPosition = true;
         [SerializeField] private bool draggable = true;
+        [SerializeField] private bool dragFromPosition = false;
 
         private Vector3 startWorldPosition, targetWorldPosition, offsetPosition;
         private Camera mainCamera;
@@ -53,7 +55,8 @@ namespace DanielLochner.Assets.CreatureCreator
         private void Awake()
         {
             mainCamera = Camera.main;
-            plane = new Plane(transform.TransformDirection(localDirection), transform.position);
+
+            UpdatePlane();
         }
         private void Update()
         {
@@ -99,10 +102,7 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public void OnMouseDown()
         {
-            if (mousePlaneAlignment == MousePlaneAlignment.WithCamera)
-            {
-                plane = new Plane(mainCamera.transform.forward, transform.position);
-            }
+            if (dragFromPosition) UpdatePlane();
 
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
             if (plane.Raycast(ray, out float distance))
@@ -124,12 +124,29 @@ namespace DanielLochner.Assets.CreatureCreator
             }
             #endif
         }
+
+        private void UpdatePlane()
+        {
+            if (mousePlaneAlignment == MousePlaneAlignment.WithCamera)
+            {
+                plane = new Plane(mainCamera.transform.forward, transform.position);
+            }
+            else if (mousePlaneAlignment == MousePlaneAlignment.ToLocalDirection)
+            {
+                plane = new Plane(transform.TransformDirection(localDirection), transform.position);
+            }
+            else if (mousePlaneAlignment == MousePlaneAlignment.ToWorldDirection)
+            {
+                plane = new Plane(worldDirection, transform.position);
+            }
+        }
         #endregion
 
         #region Enumerators
         public enum MousePlaneAlignment
         {
             ToLocalDirection,
+            ToWorldDirection,
             WithCamera
         }
         #endregion
