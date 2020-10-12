@@ -4272,7 +4272,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: -2.3354397, z: 9.58e-43, w: 2.62e-43}
+  m_BoundingSphereOverride: {x: 8.79e-43, y: 2.2990627, z: 8.79e-43, w: 3878.9658}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -4409,7 +4409,7 @@ MonoBehaviour:
     minMaxBones: {x: 2, y: 20}
     radius: 0.05
     length: 0.1
-    segments: 12
+    segments: 14
     rings: 4
   statistics:
     complexity: 0
@@ -7719,7 +7719,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1245335861}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children:
   - {fileID: 1488784797}

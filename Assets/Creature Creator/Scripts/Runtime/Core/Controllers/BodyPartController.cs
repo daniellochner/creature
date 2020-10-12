@@ -9,19 +9,25 @@ namespace DanielLochner.Assets.CreatureCreator
     public class BodyPartController : MonoBehaviour
     {
         #region Fields
-        [SerializeField] private float minScale = 0.25f;
-        [SerializeField] private float maxScale = 2.5f;
-        [SerializeField] private float scaleIncrement = 0.1f;
+        [SerializeField] private BodyPart bodyPart;
+
+        [Header("Body Part")]
+        [SerializeField] private Transform model;
+        [SerializeField] private GameObject pivotPrefab;
+        [SerializeField] private GameObject rotatePrefab;
 
         protected Hover hover;
         protected Scroll scroll;
+
+        private GameObject pivotGO;
         #endregion
 
         #region Properties
         public AttachedBodyPart AttachedBodyPart { get; set; }
         public BodyPartController Flipped { get; set; }
-
         public Drag Drag { get; set; }
+
+        public Transform Model { get { return model; } }
         #endregion
 
         #region Methods
@@ -51,17 +57,17 @@ namespace DanielLochner.Assets.CreatureCreator
 
             scroll.OnScrollUp.AddListener(delegate
             {
-                if (transform.localScale.x < maxScale - scaleIncrement)
+                if (transform.localScale.x < bodyPart.MaxScale - bodyPart.ScaleIncrement)
                 {
-                    transform.localScale += Vector3.one * scaleIncrement;
+                    transform.localScale += Vector3.one * bodyPart.ScaleIncrement;
                     Flipped.transform.localScale = transform.localScale;
                 }
             });
             scroll.OnScrollDown.AddListener(delegate
             {
-                if (transform.localScale.x > minScale + scaleIncrement)
+                if (transform.localScale.x > bodyPart.MinScale + bodyPart.ScaleIncrement)
                 {
-                    transform.localScale -= Vector3.one * scaleIncrement;
+                    transform.localScale -= Vector3.one * bodyPart.ScaleIncrement;
                     Flipped.transform.localScale = transform.localScale;
                 }
             });

@@ -33,6 +33,8 @@ namespace DanielLochner.Assets.CreatureCreator
         private Mesh mesh;
         private Outline outline;
         private Transform root, frontArrow, backArrow;
+
+        private List<LimbController> limbs = new List<LimbController>();
         #endregion
 
         #region Properties
@@ -95,6 +97,11 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 CreatureCreator.Instance.CameraOrbit.Unfreeze();
                 UpdateBoneConfiguration();
+
+                foreach (LimbController limb in limbs)
+                {
+                    limb.UpdateMeshCollider();
+                }
             });
 
             Click click = gameObject.AddComponent<Click>();
@@ -254,6 +261,21 @@ namespace DanielLochner.Assets.CreatureCreator
                 {
                     bpc.Flipped.transform.position = new Vector3(-bpc.transform.position.x, bpc.transform.position.y, bpc.transform.position.z);
                     bpc.Flipped.transform.rotation = Quaternion.Euler(bpc.transform.rotation.eulerAngles.x, -bpc.transform.rotation.eulerAngles.y, -bpc.transform.rotation.eulerAngles.z);
+
+                    if (bpc is LimbController)
+                    {
+                        LimbController limb = bpc as LimbController;
+                        LimbController flippedLimb = limb.FlippedLimb;
+
+                        for (int j = 0; j < limb.Bones.Length; j++)
+                        {
+                            float x = -limb.Bones[j].position.x;
+                            float y = limb.Bones[j].position.y;
+                            float z = limb.Bones[j].position.z;
+
+                            flippedLimb.Bones[j].position = new Vector3(x, y, z);
+                        }
+                    }
                 }
                 else
                 {
@@ -578,6 +600,11 @@ namespace DanielLochner.Assets.CreatureCreator
                     CreatureCreator.Instance.CameraOrbit.Unfreeze();
                     UpdateMeshCollider();
                     UpdateBoneConfiguration();
+
+                    foreach (LimbController limb in limbs)
+                    {
+                        limb.UpdateMeshCollider();
+                    }
                 });
 
                 Hover hover = boneGameObject.GetComponent<Hover>();
@@ -722,23 +749,33 @@ namespace DanielLochner.Assets.CreatureCreator
             flipped.Flipped = bpc;
 
             flipped.gameObject.name = bpc.gameObject.name + "(Flipped)";
-            flipped.transform.localScale = new Vector3(-bpc.transform.localScale.x, bpc.transform.localScale.y, bpc.transform.localScale.z);
+            if (bpc is LimbController)
+            {
+                LimbController limb = bpc as LimbController;
+
+                limbs.Add(limb);
+                limbs.Add(limb.FlippedLimb);
+            }
+            else
+            {
+                flipped.Model.localScale = new Vector3(-flipped.Model.localScale.x, flipped.Model.localScale.y, flipped.Model.localScale.z);
+            }
 
             #region Interact
             UnityAction onPress = delegate
             {
+                CreatureCreator.Instance.CameraOrbit.Freeze();
+
                 bpc.transform.SetParent(Dynamic.Transform);
                 flipped.transform.SetParent(Dynamic.Transform);
 
                 bpc.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Ignore Raycast"), new List<string> { "Tools" });
                 flipped.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Ignore Raycast"), new List<string> { "Tools" });
-
-                //Cursor.SetCursor(holdCursor, Vector2.zero, CursorMode.Auto);
-
-                CreatureCreator.Instance.CameraOrbit.Freeze();
             };
             UnityAction onRelease = delegate
             {
+                CreatureCreator.Instance.CameraOrbit.Unfreeze();
+
                 DetachBodyPart(bpc);
                 DetachBodyPart(flipped);
 
@@ -753,16 +790,20 @@ namespace DanielLochner.Assets.CreatureCreator
                     Instantiate(poofEffect, bpc.Drag.IsPressing ? bpc.transform.position : flipped.transform.position, Quaternion.identity, Dynamic.Transform);
                     RemoveFromStatistics(bpc.name);
 
+                    if (bpc is LimbController)
+                    {
+                        LimbController limb = bpc as LimbController;
+
+                        limbs.Remove(limb);
+                        limbs.Remove(limb.FlippedLimb);
+                    }
+
                     Destroy(bpc.gameObject);
                     Destroy(flipped.gameObject);
                 }
-
+                
                 bpc.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Body"), new List<string> { "Tools" });
                 flipped.gameObject.SetLayerRecursively(LayerMask.NameToLayer("Body"), new List<string> { "Tools" });
-
-                //Cursor.SetCursor(defaultCursor, Vector2.zero, CursorMode.Auto);
-
-                CreatureCreator.Instance.CameraOrbit.Unfreeze();
 
                 bpc.Drag.Plane = flipped.Drag.Plane = new Plane(Vector3.right, Vector3.zero);
             };
@@ -786,6 +827,14 @@ namespace DanielLochner.Assets.CreatureCreator
                         flipped.gameObject.SetActive(false);
                         bpc.transform.position = new Vector3(0, bpc.transform.position.y, bpc.transform.position.z);
                         bpc.transform.rotation = Quaternion.LookRotation(new Vector3(0, raycastHit.normal.y, raycastHit.normal.z));
+
+                        if (bpc is LimbController)
+                        {
+                            foreach (Transform bone in (bpc as LimbController).Bones)
+                            {
+                                bone.position = new Vector3(0, bone.position.y, bone.position.z);
+                            }
+                        }
                     }
                 }
                 else
@@ -814,6 +863,14 @@ namespace DanielLochner.Assets.CreatureCreator
                         bpc.gameObject.SetActive(false);
                         flipped.transform.position = new Vector3(0, flipped.transform.position.y, flipped.transform.position.z);
                         flipped.transform.rotation = Quaternion.LookRotation(new Vector3(0, raycastHit.normal.y, raycastHit.normal.z));
+
+                        if (bpc is LimbController)
+                        {
+                            foreach (Transform bone in (flipped as LimbController).Bones)
+                            {
+                                bone.position = new Vector3(0, bone.position.y, bone.position.z);
+                            }
+                        }
                     }
                 }
                 else
@@ -852,6 +909,7 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 AttachedBodyPart attachedBodyPart = new AttachedBodyPart(bpc.name.Replace("(Flipped)", ""), nearestBoneIndex, new SerializableTransform(bpc.transform));
                 bpc.AttachedBodyPart = bpc.Flipped.AttachedBodyPart = attachedBodyPart;
+                bpc.Drag.WorldBounds = bpc.Flipped.Drag.WorldBounds = new Bounds(new Vector3(0, 1, 0), new Vector3(4, 4, 4));
 
                 data.attachedBodyParts.Add(attachedBodyPart);
             }

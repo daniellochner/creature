@@ -14,10 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   description: 
   icon: {fileID: 21300000, guid: 719af109338942440b24fdf91cc1e037, type: 3}
-  prefab: {fileID: 6006055271275265924, guid: 5e3d112df0c5a2e43b044fac56e494f1, type: 3}
+  prefab: {fileID: 4418347596033157930, guid: e70c7ec58dbbcae4db798ebca0cd682a, type: 3}
   price: 100
   complexity: 5
   health: 15
   attributes: []
-  transformations: 0
+  transformations: 1
+  minScale: 0.25
+  maxScale: 2.5
+  scaleIncrement: 0.1
   speed: 2

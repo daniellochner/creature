@@ -2,7 +2,6 @@
 // Version: 1.0.0
 // Author: Daniel Lochner
 
-using RotaryHeart.Lib.SerializableDictionary;
 using System;
 using UnityEngine;
 
@@ -15,14 +14,12 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private string bodyPartID;
         [SerializeField] private int boneIndex;
         [SerializeField] private SerializableTransform transform;
-        [SerializeField] private BodyPartTransformations transformations;
         #endregion
 
         #region Properties
         public string BodyPartID { get { return bodyPartID; } }
         public int BoneIndex { get { return boneIndex; } set { boneIndex = value; } }
         public SerializableTransform Transform { get { return transform; } set { transform = value; } }
-        public BodyPartTransformations Transformations { get { return transformations; } set { transformations = value; } }
         #endregion
 
         #region Methods
@@ -33,9 +30,24 @@ namespace DanielLochner.Assets.CreatureCreator
             this.transform = transform;
         }
         #endregion
+    }
 
-        #region Inner Classes
-        [Serializable] public class BodyPartTransformations : SerializableDictionaryBase<Transformation, float> { }
+    [Serializable]
+    public class AttachedLimb : AttachedBodyPart
+    {
+        #region Fields
+        [SerializeField] private string extremityID;
+        #endregion
+
+        #region Properties
+        public string ExtremityID { get { return extremityID; } set { extremityID = value; } }
+        #endregion
+
+        #region Methods
+        public AttachedLimb(string bodyPartID, int boneIndex, SerializableTransform transform, string extremityID) : base(bodyPartID, boneIndex, transform)
+        {
+            this.extremityID = extremityID;
+        }
         #endregion
     }
 }

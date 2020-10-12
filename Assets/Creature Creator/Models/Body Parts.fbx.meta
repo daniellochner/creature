@@ -1,8 +1,38 @@
 fileFormatVersion: 2
-guid: 3526c69af6b299a4cae0ba2ff3ab14b4
+guid: 29b094293aaf19944960304c851a962b
 ModelImporter:
   serializedVersion: 19300
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      74: 6265378809855835559
+    second: Eye 1|EmptyAction
+  - first:
+      74: 2711078708066224222
+    second: Eye 2|EmptyAction
+  - first:
+      74: 2522643216656843503
+    second: Eye 3|EmptyAction
+  - first:
+      74: 7143986965700423420
+    second: Antenna|EmptyAction
+  - first:
+      74: 8302749228443731791
+    second: Mouth 1|EmptyAction
+  - first:
+      74: -4031651596244672343
+    second: Mouth 2|EmptyAction
+  - first:
+      74: -3386815543354105923
+    second: Spike Ball|EmptyAction
+  - first:
+      74: 2420219595493029310
+    second: Horn|EmptyAction
+  - first:
+      74: -7824699733245171877
+    second: Leg|EmptyAction
+  - first:
+      74: -2680557431776190914
+    second: Arm|EmptyAction
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -37,7 +67,7 @@ ModelImporter:
     globalScale: 10
     meshCompression: 0
     addColliders: 0
-    useSRGBMaterialColor: 0
+    useSRGBMaterialColor: 1
     sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
@@ -68,7 +98,7 @@ ModelImporter:
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
   referencedClips: []
-  importAnimation: 1
+  importAnimation: 0
   humanDescription:
     serializedVersion: 3
     human: []

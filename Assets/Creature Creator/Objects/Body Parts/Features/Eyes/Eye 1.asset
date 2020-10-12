@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   description: 
   icon: {fileID: 21300000, guid: b9de1351fd92dc54e809d4800f9f2915, type: 3}
-  prefab: {fileID: 8215059501382053655, guid: fcd2da5b1857e3c44aea88c8df4effa2, type: 3}
+  prefab: {fileID: 2488164740959571119, guid: eb28f0f731dde5449b219eefdcb643cc, type: 3}
   price: 10
   complexity: 2
   health: 2
