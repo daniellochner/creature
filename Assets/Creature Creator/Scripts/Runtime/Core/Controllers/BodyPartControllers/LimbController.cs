@@ -23,6 +23,9 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public Transform[] Bones { get { return bones; } }
         public Transform Extremity { get { return extremity; } }
+        const float scrollWeigth = 5f;
+        const float minSize = 0.1f;
+        const float maxSize = 10f;
         #endregion
 
         #region Methods
@@ -83,6 +86,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 {
                     if (!Input.GetMouseButton(0))
                     {
+                        CreatureCreator.Instance.CameraOrbit.Freeze();
                         SetToolsVisibility(true);
                     }
                 });
@@ -90,6 +94,7 @@ namespace DanielLochner.Assets.CreatureCreator
                 {
                     if (!Input.GetMouseButton(0))
                     {
+                        CreatureCreator.Instance.CameraOrbit.Unfreeze();
                         SetToolsVisibility(false);
                     }
                 });
@@ -117,6 +122,24 @@ namespace DanielLochner.Assets.CreatureCreator
                     UpdateMeshCollider();
                     FlippedLimb.UpdateMeshCollider();
                 });
+
+                Scroll boneScroll = bone.GetComponentInChildren<Scroll>();
+                if (boneScroll)
+                {
+                    boneScroll.OnScrollUp.AddListener(delegate
+                    {
+                        bone.localScale += Vector3.one * Time.deltaTime * scrollWeigth;
+                        bone.localScale = bone.localScale.Clamp(minSize, maxSize);
+                        flippedBone.localScale = bone.localScale;
+                    });
+                    boneScroll.OnScrollDown.AddListener(delegate
+                    {
+                        bone.localScale -= Vector3.one * Time.deltaTime * scrollWeigth;
+                        bone.localScale = bone.localScale.Clamp(minSize, maxSize);
+                        flippedBone.localScale = bone.localScale;
+                    });
+                }
+
                 #endregion
             }
 

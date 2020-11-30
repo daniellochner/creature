@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6456309569996007828}
   - component: {fileID: 2635481707352598930}
   - component: {fileID: 8812414591193544179}
+  - component: {fileID: 3314212615852170901}
   m_Layer: 9
   m_Name: Bone.3
   m_TagString: Untagged
@@ -90,6 +91,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1130929e55cd5ff43a05ca7699b6fdf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3314212615852170901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2149559942236890402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f7295b1f7aaa14eb623371ad919a66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2765302010006033346
 GameObject:
   m_ObjectHideFlags: 0
@@ -132,6 +145,7 @@ GameObject:
   - component: {fileID: 4113660474366671974}
   - component: {fileID: 6009715714450528621}
   - component: {fileID: 6946744357123909317}
+  - component: {fileID: 2778279064823858786}
   m_Layer: 9
   m_Name: Bone.4
   m_TagString: Untagged
@@ -210,6 +224,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1130929e55cd5ff43a05ca7699b6fdf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2778279064823858786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3203702842365734297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f7295b1f7aaa14eb623371ad919a66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3961076503276718968
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,6 +245,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 273491236321360700}
+  - component: {fileID: 2605089503186467880}
+  - component: {fileID: 1118785190416339745}
   m_Layer: 9
   m_Name: Bone.1
   m_TagString: Untagged
@@ -241,6 +269,30 @@ Transform:
   m_Father: {fileID: 664709843432723726}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2605089503186467880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3961076503276718968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1130929e55cd5ff43a05ca7699b6fdf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1118785190416339745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3961076503276718968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f7295b1f7aaa14eb623371ad919a66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4418347595760195593
 GameObject:
   m_ObjectHideFlags: 0
@@ -416,6 +468,7 @@ GameObject:
   - component: {fileID: 71725436921651493}
   - component: {fileID: 6897755969350462050}
   - component: {fileID: 3221387373588132070}
+  - component: {fileID: 7140765092174040627}
   m_Layer: 9
   m_Name: Bone.2
   m_TagString: Untagged
@@ -492,6 +545,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1130929e55cd5ff43a05ca7699b6fdf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7140765092174040627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7182151718478020677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f7295b1f7aaa14eb623371ad919a66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &8047226316380704842
@@ -592,7 +657,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
+  serializedVersion: 4
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
