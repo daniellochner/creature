@@ -13,6 +13,9 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private GameObject movePrefab;
         [SerializeField] private Transform[] bones;
         [SerializeField] private Transform extremity;
+        [SerializeField] private float scrollWeight = 5f;
+        [SerializeField] private float minSize = 0.1f;
+        [SerializeField] private float maxSize = 10f;
 
         private SkinnedMeshRenderer skinnedMeshRenderer;
         private MeshCollider meshCollider;
@@ -23,9 +26,6 @@ namespace DanielLochner.Assets.CreatureCreator
 
         public Transform[] Bones { get { return bones; } }
         public Transform Extremity { get { return extremity; } }
-        const float scrollWeigth = 5f;
-        const float minSize = 0.1f;
-        const float maxSize = 10f;
         #endregion
 
         #region Methods
