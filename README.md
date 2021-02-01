@@ -1,4 +1,4 @@
-Please Note: This repository has undergone several major changes since its initial release. An update will be released soon, along with an explanation video discussing the changes.
+Please Note: This repository has undergone several major changes since its initial release. An update will soon be released, along with a YouTube video discussing the development process.
 
 # Creature Creator
 
