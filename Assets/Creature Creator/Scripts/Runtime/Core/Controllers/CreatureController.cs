@@ -26,14 +26,16 @@ namespace DanielLochner.Assets.CreatureCreator
         [SerializeField] private CreatureSettings settings;
         [SerializeField] private CreatureStatistics statistics;
         [SerializeField] private CreatureData data;
-
+        [Space]
+        [SerializeField] private GameObject redGlow;
+        
         private SkinnedMeshRenderer skinnedMeshRenderer;
         private MeshCollider meshCollider;
         private AudioSource audioSource;
         private Mesh mesh;
         private Outline outline;
         private Transform root, frontArrow, backArrow;
-
+        
         private List<LimbController> limbs = new List<LimbController>();
         #endregion
 
@@ -765,7 +767,7 @@ namespace DanielLochner.Assets.CreatureCreator
             UnityAction onPress = delegate
             {
                 CreatureCreator.Instance.CameraOrbit.Freeze();
-
+                
                 bpc.transform.SetParent(Dynamic.Transform);
                 flipped.transform.SetParent(Dynamic.Transform);
 
@@ -776,6 +778,8 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 CreatureCreator.Instance.CameraOrbit.Unfreeze();
 
+                redGlow.SetActive(false);
+                
                 DetachBodyPart(bpc);
                 DetachBodyPart(flipped);
 
@@ -811,6 +815,8 @@ namespace DanielLochner.Assets.CreatureCreator
             {
                 if (Physics.Raycast(RectTransformUtility.ScreenPointToRay(CreatureCreator.Instance.CameraOrbit.Camera, Input.mousePosition), out RaycastHit raycastHit) && raycastHit.collider.CompareTag("Player"))
                 {
+                    redGlow.SetActive(false);
+                    
                     bpc.Drag.Draggable = false;
 
                     bpc.transform.position = raycastHit.point;
@@ -839,6 +845,10 @@ namespace DanielLochner.Assets.CreatureCreator
                 }
                 else
                 {
+                    redGlow.SetActive(true);
+                    redGlow.transform.position = RectTransformUtility.WorldToScreenPoint(
+                        Camera.main, bpc.transform.position);
+                    
                     bpc.Drag.Draggable = true;
                     flipped.gameObject.SetActive(false);
                 }
