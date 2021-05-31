@@ -1,10 +1,11 @@
-Please Note: This repository has undergone several major changes since its initial release. An update will soon be released, along with a YouTube video discussing the development process.
+## Please Note
+This repository has undergone several major changes since its initial release. An update will soon be released, along with a YouTube video discussing the development process. For more information, please read [this](https://www.youtube.com/channel/UCGLR3v7NaV1t92dnzWZNSKA/community?lb=UgxlXQ_Cz7YIBDkxlpJ4AaABCQ) community post which I uploaded to my  channel!
 
-# Creature Creator
+---
 
-Try out the [demo](https://bit.ly/creature-creator-demo) for yourself.
+**[DEMO](https://bit.ly/creature-creator-demo) | [VIDEO](https://youtu.be/Br_SQAc87s8) | [DISCORD](https://discord.gg/sJysbdu)**
 
-Watch the [YouTube video](https://youtu.be/Br_SQAc87s8) to find out how this project was made.
+---
 
 <p align="middle">
   <img src="https://img.itch.zone/aW1hZ2UvNzY4NjAzLzQzMDA0MjMucG5n/original/1fZLdQ.png" width="32%" />
